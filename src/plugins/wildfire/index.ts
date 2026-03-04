@@ -1,3 +1,4 @@
+import { Flame } from "lucide-react";
 import type {
     WorldPlugin,
     GeoEntity,
@@ -25,7 +26,7 @@ export class WildfirePlugin implements WorldPlugin {
     id = "wildfire";
     name = "Wildfire";
     description = "Active fire detection via NASA FIRMS (VIIRS)";
-    icon = "🔥";
+    icon = Flame;
     category = "natural-disaster" as const;
     version = "1.0.0";
 

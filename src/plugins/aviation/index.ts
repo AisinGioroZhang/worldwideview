@@ -1,3 +1,4 @@
+import { Plane } from "lucide-react";
 import type {
     WorldPlugin,
     GeoEntity,
@@ -6,6 +7,7 @@ import type {
     LayerConfig,
     CesiumEntityOptions,
 } from "@/core/plugins/PluginTypes";
+import { useStore } from "@/core/state/store";
 
 interface OpenSkyState {
     icao24: string;
@@ -39,7 +41,7 @@ export class AviationPlugin implements WorldPlugin {
     id = "aviation";
     name = "Aviation";
     description = "Real-time aircraft tracking via OpenSky Network";
-    icon = "✈️";
+    icon = Plane;
     category = "aviation" as const;
     version = "1.0.0";
 
@@ -55,9 +57,43 @@ export class AviationPlugin implements WorldPlugin {
 
     async fetch(_timeRange: TimeRange): Promise<GeoEntity[]> {
         try {
-            const res = await fetch("/api/aviation");
-            if (!res.ok) throw new Error(`Aviation API returned ${res.status}`);
-            const data = await res.json();
+            const state = useStore.getState();
+            let res;
+            let data: any;
+
+            if (state.isPlaybackMode) {
+                res = await fetch(`/api/aviation/history?time=${state.currentTime.getTime()}`);
+                if (!res.ok) throw new Error(`History API returned ${res.status}`);
+                const historyData = await res.json();
+
+                if (!historyData.records || !Array.isArray(historyData.records)) return [];
+
+                return historyData.records.map((s: any): GeoEntity => {
+                    return {
+                        id: `aviation-history-${s.icao24}`,
+                        pluginId: "aviation",
+                        latitude: s.latitude,
+                        longitude: s.longitude,
+                        altitude: (s.altitude || 0) * 10, // Scale for visibility matching Live mode
+                        heading: s.heading || undefined,
+                        speed: s.speed || undefined,
+                        timestamp: new Date(s.timestamp), // from DB
+                        label: s.callsign || s.icao24,
+                        properties: {
+                            icao24: s.icao24,
+                            callsign: s.callsign,
+                            altitude_m: s.altitude,
+                            velocity_ms: s.speed,
+                            heading: s.heading,
+                            on_ground: s.altitude === null || s.altitude <= 0,
+                        },
+                    };
+                });
+            } else {
+                res = await fetch("/api/aviation");
+                if (!res.ok) throw new Error(`Aviation API returned ${res.status}`);
+                data = await res.json();
+            }
 
             if (!data.states || !Array.isArray(data.states)) return [];
 

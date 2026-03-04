@@ -73,7 +73,13 @@ export function LayerPanel() {
                                 className="layer-item"
                                 onClick={() => handleToggle(managed.plugin.id)}
                             >
-                                <span className="layer-item__icon">{managed.plugin.icon}</span>
+                                <span className="layer-item__icon">
+                                    {typeof managed.plugin.icon === "string" ? (
+                                        managed.plugin.icon
+                                    ) : (
+                                        <managed.plugin.icon size={18} />
+                                    )}
+                                </span>
                                 <div className="layer-item__info">
                                     <div className="layer-item__name">{managed.plugin.name}</div>
                                     <div className="layer-item__desc">

@@ -20,11 +20,14 @@ import {
     ScreenSpaceEventType,
     defined,
     Math as CesiumMath,
-    CallbackProperty,
     JulianDate,
     PointPrimitiveCollection,
     BillboardCollection,
     LabelCollection,
+    Ellipsoid,
+    CullingVolume,
+    BoundingSphere,
+    Intersect,
 } from "cesium";
 import type { Viewer as CesiumViewer } from "cesium";
 import { useStore } from "@/core/state/store";
@@ -170,6 +173,9 @@ export default function GlobeView() {
         billboards.removeAll();
         labels.removeAll();
 
+        const positionMap = new Map<any, import("cesium").Cartesian3>();
+        const animatables: Array<{ primitive: any; entity: GeoEntity; isLabel?: boolean }> = [];
+
         for (const { entity, options } of visibleEntities) {
             const position = Cartesian3.fromDegrees(
                 entity.longitude,
@@ -179,8 +185,10 @@ export default function GlobeView() {
             const color = getEntityColor(entity, options);
             const clickId = { _wwvEntity: entity };
 
+            let addedPrimitive: any;
+
             if (options.type === "billboard" && options.iconUrl) {
-                billboards.add({
+                addedPrimitive = billboards.add({
                     position,
                     image: options.iconUrl,
                     scale: 0.5,
@@ -194,7 +202,7 @@ export default function GlobeView() {
                     id: clickId,
                 });
             } else {
-                points.add({
+                addedPrimitive = points.add({
                     position,
                     pixelSize: options.size || 6,
                     color,
@@ -206,9 +214,10 @@ export default function GlobeView() {
                     id: clickId,
                 });
             }
+            positionMap.set(addedPrimitive, position);
 
             if (options.labelText) {
-                labels.add({
+                const addedLabel = labels.add({
                     position,
                     text: options.labelText,
                     font: options.labelFont || "12px Inter, sans-serif",
@@ -220,8 +229,108 @@ export default function GlobeView() {
                     scaleByDistance: new NearFarScalar(1e3, 1.0, 5e6, 0.0),
                     id: clickId,
                 });
+                positionMap.set(addedLabel, position);
+            }
+
+            animatables.push({ primitive: addedPrimitive, entity });
+            if (options.labelText) {
+                animatables.push({ primitive: labels.get(labels.length - 1), entity, isLabel: true });
             }
         }
+
+        // --- Animation Loop ---
+        const updatePositions = () => {
+            if (!viewerRef.current) return;
+            const state = useStore.getState();
+            // Use current time from timeline if in playback, or clock time if live (to prevent stuttering)
+            const nowMs = state.isPlaybackMode ? state.currentTime.getTime() : Date.now();
+
+            for (let i = 0; i < animatables.length; i++) {
+                const { primitive, entity } = animatables[i];
+                if (!entity.timestamp || entity.speed === undefined || entity.heading === undefined) continue;
+
+                const dtSec = Math.max(0, Math.min((nowMs - entity.timestamp.getTime()) / 1000, 300)); // extrapolate up to 5 min
+                if (dtSec > 0 && primitive) {
+                    const distanceM = entity.speed * dtSec;
+                    const angularDist = distanceM / 6371000;
+
+                    const lat1 = CesiumMath.toRadians(entity.latitude);
+                    const lon1 = CesiumMath.toRadians(entity.longitude);
+                    const brng = CesiumMath.toRadians(entity.heading);
+
+                    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(angularDist) + Math.cos(lat1) * Math.sin(angularDist) * Math.cos(brng));
+                    const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(angularDist) * Math.cos(lat1), Math.cos(angularDist) - Math.sin(lat1) * Math.sin(lat2));
+
+                    const newPos = Cartesian3.fromRadians(lon2, lat2, entity.altitude || 0);
+                    primitive.position = newPos;
+                    positionMap.set(primitive, newPos);
+                }
+            }
+        };
+
+        viewer.scene.preUpdate.addEventListener(updatePositions);
+
+        // --- Culling Logic ---
+        viewer.camera.percentageChanged = 0.05;
+
+        const updateVisibility = () => {
+            if (!viewerRef.current) return;
+            const cam = viewerRef.current.camera;
+
+            // Check frustom culling
+            const cullingVolume = cam.frustum.computeCullingVolume(cam.positionWC, cam.directionWC, cam.upWC);
+
+            const scratchSphere = new BoundingSphere(new Cartesian3(), 10.0); // Allow slight padding
+
+            // For Horizon Culling
+            const camPos = cam.positionWC;
+            const R_WGS84_MIN = 6356752.0; // Safe underestimate for occlusion
+            const R2 = R_WGS84_MIN * R_WGS84_MIN;
+            const camDistSqr = Cartesian3.magnitudeSquared(camPos);
+            const Dh = Math.sqrt(Math.max(0, camDistSqr - R2));
+
+            const updatePrimitiveVisibility = (primitiveInfo: any) => {
+                const pos = positionMap.get(primitiveInfo);
+                if (!pos) return;
+
+                // 1. Horizon Culling (Spherical tangent distance)
+                // The max line-of-sight distance without hitting the Earth is Dh + Dph.
+                const posDistSqr = Cartesian3.magnitudeSquared(pos);
+                const Dph = Math.sqrt(Math.max(0, posDistSqr - R2));
+                const distanceToPoint = Cartesian3.distance(camPos, pos);
+
+                if (distanceToPoint > Dh + Dph) {
+                    primitiveInfo.show = false;
+                    return;
+                }
+
+                // 2. Frustum Culling
+                scratchSphere.center = pos;
+                const intersection = cullingVolume.computeVisibility(scratchSphere);
+                primitiveInfo.show = intersection !== Intersect.OUTSIDE;
+            };
+
+            for (let i = 0; i < points.length; ++i) {
+                updatePrimitiveVisibility(points.get(i));
+            }
+            for (let i = 0; i < billboards.length; ++i) {
+                updatePrimitiveVisibility(billboards.get(i));
+            }
+            for (let i = 0; i < labels.length; ++i) {
+                updatePrimitiveVisibility(labels.get(i));
+            }
+        };
+
+        // Run initially once
+        updateVisibility();
+
+        // Attach listeners
+        viewer.camera.changed.addEventListener(updateVisibility);
+
+        return () => {
+            viewer.camera.changed.removeEventListener(updateVisibility);
+            viewer.scene.preUpdate.removeEventListener(updatePositions);
+        };
     }, [visibleEntities]);
 
     return (

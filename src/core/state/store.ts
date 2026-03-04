@@ -17,6 +17,7 @@ export interface DataConfig {
         predictiveLoading: boolean;
         realtimeStreaming: boolean;
         clusteringEnabled: boolean;
+        showTimelineHighlight: boolean;
     };
 }
 
@@ -59,20 +60,28 @@ interface TimelineSlice {
     timeRange: TimeRange;
     isPlaying: boolean;
     playbackSpeed: number;
+    isPlaybackMode: boolean;
+    playbackTime: number; // ms timestamp
+    timelineAvailability: { start: number; end: number }[];
     setCurrentTime: (time: Date) => void;
     setTimeWindow: (window: TimeWindow) => void;
     setTimeRange: (range: TimeRange) => void;
     setPlaying: (playing: boolean) => void;
     setPlaybackSpeed: (speed: number) => void;
+    setPlaybackMode: (mode: boolean) => void;
+    setPlaybackTime: (time: number) => void;
+    setTimelineAvailability: (availability: { start: number; end: number }[]) => void;
 }
 
 // ─── UI Slice ────────────────────────────────────────────────
 interface UISlice {
     leftSidebarOpen: boolean;
     rightSidebarOpen: boolean;
+    configPanelOpen: boolean;
     selectedEntity: GeoEntity | null;
     toggleLeftSidebar: () => void;
     toggleRightSidebar: () => void;
+    toggleConfigPanel: () => void;
     setSelectedEntity: (entity: GeoEntity | null) => void;
 }
 
@@ -161,21 +170,30 @@ export const useStore = create<AppStore>((set, get) => ({
     timeRange: getTimeRange("24h"),
     isPlaying: false,
     playbackSpeed: 1,
+    isPlaybackMode: false,
+    playbackTime: Date.now(),
+    timelineAvailability: [],
     setCurrentTime: (time) => set({ currentTime: time }),
     setTimeWindow: (window) =>
         set({ timeWindow: window, timeRange: getTimeRange(window) }),
     setTimeRange: (range) => set({ timeRange: range }),
     setPlaying: (playing) => set({ isPlaying: playing }),
     setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+    setPlaybackMode: (mode) => set({ isPlaybackMode: mode }),
+    setPlaybackTime: (time) => set({ playbackTime: time }),
+    setTimelineAvailability: (availability) => set({ timelineAvailability: availability }),
 
     // ── UI ───────────────────────────────────────────────────
     leftSidebarOpen: true,
     rightSidebarOpen: false,
+    configPanelOpen: false,
     selectedEntity: null,
     toggleLeftSidebar: () =>
         set((state) => ({ leftSidebarOpen: !state.leftSidebarOpen })),
     toggleRightSidebar: () =>
         set((state) => ({ rightSidebarOpen: !state.rightSidebarOpen })),
+    toggleConfigPanel: () =>
+        set((state) => ({ configPanelOpen: !state.configPanelOpen })),
     setSelectedEntity: (entity) =>
         set({ selectedEntity: entity, rightSidebarOpen: entity !== null }),
 
@@ -211,6 +229,7 @@ export const useStore = create<AppStore>((set, get) => ({
             predictiveLoading: false,
             realtimeStreaming: false,
             clusteringEnabled: true,
+            showTimelineHighlight: true,
         },
     },
     updateDataConfig: (config) =>

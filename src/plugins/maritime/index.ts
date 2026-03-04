@@ -1,3 +1,4 @@
+import { Ship } from "lucide-react";
 import type {
     WorldPlugin,
     GeoEntity,
@@ -70,7 +71,7 @@ export class MaritimePlugin implements WorldPlugin {
     id = "maritime";
     name = "Maritime";
     description = "Vessel tracking via AIS feeds";
-    icon = "🚢";
+    icon = Ship;
     category = "maritime" as const;
     version = "1.0.0";
 

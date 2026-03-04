@@ -16,7 +16,11 @@ export function TimelineSync() {
     const playbackSpeed = useStore((s) => s.playbackSpeed);
     const setCurrentTime = useStore((s) => s.setCurrentTime);
     const setPlaying = useStore((s) => s.setPlaying);
+    const isPlaybackMode = useStore((s) => s.isPlaybackMode);
+
+    // Playback state trackers
     const lastUpdateRef = useRef(Date.now());
+    const lastFetchTimeRef = useRef(currentTime.getTime());
 
     // Playback engine
     useEffect(() => {
@@ -58,6 +62,20 @@ export function TimelineSync() {
         });
         return unsub;
     }, []);
+
+    // Playback Mode: Trigger fetches when time changes significantly (e.g. by scrubber or playback)
+    useEffect(() => {
+        if (!isPlaybackMode) return;
+
+        const now = currentTime.getTime();
+        // Trigger a fetch if time has moved by more than 5 seconds (to match API frequency)
+        if (Math.abs(now - lastFetchTimeRef.current) > 5000) {
+            lastFetchTimeRef.current = now;
+            // Hacky but works: just tell plugins timeRange changed so they re-fetch
+            // In the future this could be a dedicated "playbackTimeChanged" event
+            pluginManager.updateTimeRange(timeRange);
+        }
+    }, [currentTime, isPlaybackMode, timeRange]);
 
     return null; // Logic-only component
 }

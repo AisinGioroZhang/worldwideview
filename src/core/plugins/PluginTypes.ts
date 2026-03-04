@@ -69,7 +69,7 @@ export interface WorldPlugin {
     id: string;
     name: string;
     description: string;
-    icon: string;
+    icon: string | ComponentType<{ size?: number; color?: string }>;
     category: PluginCategory;
     version: string;
 
