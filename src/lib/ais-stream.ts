@@ -46,7 +46,7 @@ export function startAisStream() {
                 console.warn('[AIS Stream] Connection timed out. Terminating...');
                 ws.terminate();
             }
-        }, 10000);
+        }, 30000); // Increased to 30s for slow connections
 
         ws.on('open', () => {
             clearTimeout(connectionTimeout);
@@ -55,21 +55,31 @@ export function startAisStream() {
             connectionStartTime = Date.now();
 
             const subscriptionMessage = {
-                ApiKey: apiKey, // The API actually expects "ApiKey" instead of "APIKey" in some docs
+                ApiKey: apiKey,
                 BoundingBoxes: [[[-90, -180], [90, 180]]],
                 FilterMessageTypes: ["PositionReport"]
             };
 
             ws?.send(JSON.stringify(subscriptionMessage));
             console.log('[AIS Stream] Sent subscription message');
+
+            // Set up ping interval to keep connection alive
+            const pingInterval = setInterval(() => {
+                if (ws?.readyState === WebSocket.OPEN) {
+                    ws.ping();
+                } else {
+                    clearInterval(pingInterval);
+                }
+            }, 30000); // Ping every 30s
+
+            // attach interval to ws object so it can be cleared on close
+            (ws as any)._pingInterval = pingInterval;
         });
 
         ws.on('message', (data) => {
             try {
                 const rawBuffer = data.toString();
-                // Add verbose logging to see if we are getting data
-                console.log('[AIS Stream] Received raw message fragment:', rawBuffer.substring(0, 100));
-
+                // Verbose logging removed to prevent spam once it connects
                 const message = JSON.parse(rawBuffer);
 
                 if (message.MessageType === 'PositionReport') {

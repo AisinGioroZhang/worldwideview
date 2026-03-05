@@ -242,7 +242,7 @@ html, body {
 .sidebar {
   position: fixed;
   top: 80px;
-  bottom: 80px;
+  bottom: 120px; /* Increased to avoid clipping with the timeline */
   width: 280px;
   z-index: 50;
   padding: var(--space-lg);
