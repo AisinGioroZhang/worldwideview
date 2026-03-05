@@ -160,6 +160,15 @@ function extrapolatePosition(item: AnimatableItem, nowMs: number): void {
         item.velocityVector = Cartesian3.clone(scratchVelocity);
     }
 
+    // If static, only set position once
+    if (entity.speed === 0) {
+        if (item.primitive.position !== posRef) {
+            item.primitive.position = posRef;
+            if (item.labelPrimitive) item.labelPrimitive.position = posRef;
+        }
+        return;
+    }
+
     // Apply zero-allocation displacement calculation
     Cartesian3.multiplyByScalar(item.velocityVector, dtSec, scratchDisplacement);
     Cartesian3.add(item.basePosition!, scratchDisplacement, posRef);

@@ -1,9 +1,10 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useStore } from "@/core/state/store";
 import { FilterSection } from "./FilterPanel";
+import { pluginManager } from "@/core/plugins/PluginManager";
+import { PluginIcon } from "@/components/common/PluginIcon";
+import { Info } from "lucide-react";
 
 export function DataConfigPanel() {
     const configPanelOpen = useStore((s) => s.configPanelOpen);
@@ -14,11 +15,20 @@ export function DataConfigPanel() {
     const mapConfig = useStore((s) => s.mapConfig);
     const updateMapConfig = useStore((s) => s.updateMapConfig);
 
+    const selectedEntity = useStore((s) => s.selectedEntity);
+
     const enabledPlugins = Object.entries(dataConfig.pollingIntervals).filter(
         ([pluginId]) => layers[pluginId]?.enabled
     );
 
-    const [activeTab, setActiveTab] = useState<"filters" | "cache" | "overlay">("filters");
+    const [activeTab, setActiveTab] = useState<"intel" | "filters" | "cache" | "overlay">("filters");
+
+    // Auto-switch to Intel tab when an entity is selected
+    useEffect(() => {
+        if (selectedEntity) {
+            setActiveTab("intel");
+        }
+    }, [selectedEntity]);
 
     return (
         <aside
@@ -29,6 +39,13 @@ export function DataConfigPanel() {
             <div className="sidebar__title" style={{ marginBottom: "var(--space-md)", color: "var(--text-primary)", fontSize: "14px", fontWeight: 600 }}>Data Configuration</div>
 
             <div className="panel-tabs">
+                <button
+                    className={`panel-tab ${activeTab === "intel" ? "panel-tab--active" : ""}`}
+                    onClick={() => setActiveTab("intel")}
+                >
+                    <Info size={12} style={{ marginRight: 4 }} />
+                    Intel
+                </button>
                 <button
                     className={`panel-tab ${activeTab === "filters" ? "panel-tab--active" : ""}`}
                     onClick={() => setActiveTab("filters")}
@@ -48,6 +65,92 @@ export function DataConfigPanel() {
                     Config & Overlay
                 </button>
             </div>
+
+            {activeTab === "intel" && (
+                <div style={{ marginBottom: "var(--space-lg)" }}>
+                    <div style={sectionHeaderStyle}>Intelligence</div>
+                    {!selectedEntity ? (
+                        <div style={{ padding: "var(--space-md)", color: "var(--text-muted)", fontSize: 13, fontStyle: "italic", textAlign: "center" }}>
+                            Select an entity on the map to view its intelligence report.
+                        </div>
+                    ) : (() => {
+                        const managed = pluginManager.getPlugin(selectedEntity.pluginId);
+                        const pluginIcon = managed?.plugin.icon;
+                        const pluginName = managed?.plugin.name || selectedEntity.pluginId;
+
+                        const displayProps = Object.entries(selectedEntity.properties).filter(
+                            ([key]) =>
+                                !["id", "pluginId"].includes(key) &&
+                                selectedEntity.properties[key] !== null &&
+                                selectedEntity.properties[key] !== undefined
+                        );
+
+                        return (
+                            <div className="intel-panel__entity">
+                                <div className="intel-panel__entity-header">
+                                    <span className="intel-panel__entity-icon">
+                                        {pluginIcon && <PluginIcon icon={pluginIcon} size={20} />}
+                                    </span>
+                                    <div>
+                                        <div className="intel-panel__entity-title">
+                                            {selectedEntity.label || selectedEntity.id}
+                                        </div>
+                                        <div className="intel-panel__entity-subtitle">{pluginName}</div>
+                                    </div>
+                                </div>
+                                <div className="intel-panel__props">
+                                    <div className="intel-panel__prop">
+                                        <span className="intel-panel__prop-key">Latitude</span>
+                                        <span className="intel-panel__prop-value">
+                                            {selectedEntity.latitude.toFixed(4)}°
+                                        </span>
+                                    </div>
+                                    <div className="intel-panel__prop">
+                                        <span className="intel-panel__prop-key">Longitude</span>
+                                        <span className="intel-panel__prop-value">
+                                            {selectedEntity.longitude.toFixed(4)}°
+                                        </span>
+                                    </div>
+                                    {selectedEntity.altitude !== undefined && (
+                                        <div className="intel-panel__prop">
+                                            <span className="intel-panel__prop-key">Altitude</span>
+                                            <span className="intel-panel__prop-value">
+                                                {selectedEntity.altitude.toFixed(0)} m
+                                            </span>
+                                        </div>
+                                    )}
+                                    {selectedEntity.speed !== undefined && (
+                                        <div className="intel-panel__prop">
+                                            <span className="intel-panel__prop-key">Speed</span>
+                                            <span className="intel-panel__prop-value">
+                                                {selectedEntity.speed.toFixed(1)} m/s
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="intel-panel__prop">
+                                        <span className="intel-panel__prop-key">Timestamp</span>
+                                        <span className="intel-panel__prop-value">
+                                            {selectedEntity.timestamp.toLocaleTimeString()}
+                                        </span>
+                                    </div>
+                                    {displayProps.map(([key, value]) => (
+                                        <div key={key} className="intel-panel__prop">
+                                            <span className="intel-panel__prop-key">
+                                                {key.replace(/_/g, " ")}
+                                            </span>
+                                            <span className="intel-panel__prop-value">
+                                                {typeof value === "boolean"
+                                                    ? value ? "Yes" : "No"
+                                                    : String(value)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
 
             {activeTab === "filters" && (
                 <div style={{ marginBottom: "var(--space-lg)" }}>

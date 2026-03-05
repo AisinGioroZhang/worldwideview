@@ -92,7 +92,6 @@ export function AppShell() {
             <Header />
             <LayerPanel />
             <DataConfigPanel />
-            <IntelPanel />
             <EntityInfoCard />
             <Timeline />
         </div>
