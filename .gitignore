@@ -20,6 +20,9 @@
 # performance
 /performance/
 
+# artifacts
+/artifacts/
+
 # production
 /build
 

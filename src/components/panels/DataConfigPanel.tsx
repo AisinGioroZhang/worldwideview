@@ -15,23 +15,26 @@ export function DataConfigPanel() {
     const layers = useStore((s) => s.layers);
     const mapConfig = useStore((s) => s.mapConfig);
     const updateMapConfig = useStore((s) => s.updateMapConfig);
-
     const selectedEntity = useStore((s) => s.selectedEntity);
+
     const lockedEntityId = useStore((s) => s.lockedEntityId);
     const setLockedEntityId = useStore((s) => s.setLockedEntityId);
+
+    const activeTab = useStore((s) => s.activeConfigTab);
+    const setActiveTab = useStore((s) => s.setActiveConfigTab);
+    const highlightLayerId = useStore((s) => s.highlightLayerId);
+    const setHighlightLayerId = useStore((s) => s.setHighlightLayerId);
 
     const enabledPlugins = Object.entries(dataConfig.pollingIntervals).filter(
         ([pluginId]) => layers[pluginId]?.enabled
     );
 
-    const [activeTab, setActiveTab] = useState<"intel" | "filters" | "cache" | "overlay">("filters");
-
     // Auto-switch to Intel tab when an entity is selected
     useEffect(() => {
-        if (selectedEntity) {
+        if (selectedEntity && activeTab !== "intel") {
             setActiveTab("intel");
         }
-    }, [selectedEntity]);
+    }, [selectedEntity, activeTab, setActiveTab]);
 
     return (
         <aside
@@ -122,32 +125,40 @@ export function DataConfigPanel() {
                                             </span>
                                         </div>
                                     )}
-                                    {selectedEntity.speed !== undefined && (
-                                        <div className="intel-panel__prop">
-                                            <span className="intel-panel__prop-key">Speed</span>
-                                            <span className="intel-panel__prop-value">
-                                                {selectedEntity.speed.toFixed(1)} m/s
-                                            </span>
-                                        </div>
-                                    )}
                                     <div className="intel-panel__prop">
                                         <span className="intel-panel__prop-key">Timestamp</span>
                                         <span className="intel-panel__prop-value">
                                             {selectedEntity.timestamp.toLocaleTimeString()}
                                         </span>
                                     </div>
-                                    {displayProps.map(([key, value]) => (
-                                        <div key={key} className="intel-panel__prop">
-                                            <span className="intel-panel__prop-key">
-                                                {key.replace(/_/g, " ")}
-                                            </span>
-                                            <span className="intel-panel__prop-value">
-                                                {typeof value === "boolean"
-                                                    ? value ? "Yes" : "No"
-                                                    : String(value)}
-                                            </span>
-                                        </div>
-                                    ))}
+
+                                    {/* Custom Plugin Detail Component */}
+                                    {(() => {
+                                        const DetailComp = managed?.plugin.getDetailComponent?.();
+                                        if (DetailComp) {
+                                            return (
+                                                <div className="intel-panel__custom-detail" style={{ marginTop: "var(--space-md)", maxWidth: "100%", overflow: "hidden" }}>
+                                                    <DetailComp entity={selectedEntity} />
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <>
+                                                {displayProps.map(([key, value]) => (
+                                                    <div key={key} className="intel-panel__prop">
+                                                        <span className="intel-panel__prop-key">
+                                                            {key.replace(/_/g, " ")}
+                                                        </span>
+                                                        <span className="intel-panel__prop-value">
+                                                            {typeof value === "boolean"
+                                                                ? value ? "Yes" : "No"
+                                                                : String(value)}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                                 {/* Action Buttons */}
                                 <div className="intel-panel__actions">
@@ -263,28 +274,49 @@ export function DataConfigPanel() {
                                 No layers enabled. Turn on a layer to configure it.
                             </div>
                         ) : (
-                            enabledPlugins.map(([pluginId, interval]) => (
-                                <div key={pluginId} style={{
-                                    marginBottom: "var(--space-md)",
-                                    background: "var(--bg-tertiary)",
-                                    padding: "var(--space-md)",
-                                    borderRadius: "var(--radius-md)",
-                                    border: "1px solid var(--border-subtle)"
-                                }}>
-                                    <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", marginBottom: "var(--space-sm)", textTransform: "capitalize" }}>
-                                        {pluginId} Layer
+                            enabledPlugins.map(([pluginId, interval]) => {
+                                const managed = pluginManager.getPlugin(pluginId);
+                                const SettingsComp = managed?.plugin.getSettingsComponent?.();
+                                const isHighlighted = highlightLayerId === pluginId;
+
+                                return (
+                                    <div
+                                        key={pluginId}
+                                        onClick={() => isHighlighted && setHighlightLayerId(null)}
+                                        style={{
+                                            marginBottom: "var(--space-md)",
+                                            background: "var(--bg-tertiary)",
+                                            padding: "var(--space-md)",
+                                            borderRadius: "var(--radius-md)",
+                                            border: isHighlighted ? "2px solid #ef4444" : "1px solid var(--border-subtle)",
+                                            boxShadow: isHighlighted ? "0 0 10px rgba(239, 68, 68, 0.4)" : "none",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                    >
+                                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", marginBottom: "var(--space-sm)", textTransform: "capitalize" }}>
+                                            {managed?.plugin.name || pluginId} Layer
+                                        </div>
+                                        <div style={inputGroupStyle}>
+                                            <label style={labelStyle}>Polling Interval (ms)</label>
+                                            <input
+                                                type="number"
+                                                value={interval}
+                                                onChange={(e) => setPollingInterval(pluginId, parseInt(e.target.value) || 0)}
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                        {SettingsComp && (
+                                            <div style={{
+                                                marginTop: "var(--space-md)",
+                                                paddingTop: "var(--space-md)",
+                                                borderTop: "1px solid var(--border-subtle)"
+                                            }}>
+                                                <SettingsComp pluginId={pluginId} />
+                                            </div>
+                                        )}
                                     </div>
-                                    <div style={inputGroupStyle}>
-                                        <label style={labelStyle}>Polling Interval (ms)</label>
-                                        <input
-                                            type="number"
-                                            value={interval}
-                                            onChange={(e) => setPollingInterval(pluginId, parseInt(e.target.value) || 0)}
-                                            style={inputStyle}
-                                        />
-                                    </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
 

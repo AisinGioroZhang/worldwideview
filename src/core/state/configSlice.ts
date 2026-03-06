@@ -14,6 +14,7 @@ export interface DataConfig {
         clusteringEnabled: boolean;
         showTimelineHighlight: boolean;
     };
+    pluginSettings: Record<string, any>;
 }
 
 export interface MapConfig {
@@ -32,6 +33,7 @@ export interface ConfigSlice {
     updateDataConfig: (config: Partial<DataConfig>) => void;
     updateMapConfig: (config: Partial<MapConfig>) => void;
     setPollingInterval: (pluginId: string, intervalMs: number) => void;
+    updatePluginSettings: (pluginId: string, settings: any) => void;
 }
 
 export const createConfigSlice: StateCreator<AppStore, [], [], ConfigSlice> = (set) => ({
@@ -47,6 +49,7 @@ export const createConfigSlice: StateCreator<AppStore, [], [], ConfigSlice> = (s
             clusteringEnabled: true,
             showTimelineHighlight: true,
         },
+        pluginSettings: {},
     },
     mapConfig: {
         showFps: false,
@@ -72,6 +75,19 @@ export const createConfigSlice: StateCreator<AppStore, [], [], ConfigSlice> = (s
                 pollingIntervals: {
                     ...state.dataConfig.pollingIntervals,
                     [pluginId]: intervalMs,
+                },
+            },
+        })),
+    updatePluginSettings: (pluginId, settings) =>
+        set((state) => ({
+            dataConfig: {
+                ...state.dataConfig,
+                pluginSettings: {
+                    ...state.dataConfig.pluginSettings,
+                    [pluginId]: {
+                        ...state.dataConfig.pluginSettings[pluginId],
+                        ...settings,
+                    },
                 },
             },
         })),

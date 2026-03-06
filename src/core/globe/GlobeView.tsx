@@ -86,25 +86,35 @@ export default function GlobeView() {
     // Initialization of Selection Entity
     useEffect(() => {
         const viewer = viewerRef.current;
-        if (!viewer || !viewerReady) return;
+        if (!viewer || viewer.isDestroyed() || !viewerReady) return;
 
-        // Create a hidden entity for camera tracking/flying
-        if (!viewer.entities) {
-            console.warn("[GlobeView] Viewer entities collection not available during selection anchor init");
+        let entity: CesiumEntity | null = null;
+        try {
+            // Create a hidden entity for camera tracking/flying
+            if (!viewer.entities) {
+                console.warn("[GlobeView] Viewer entities collection not available during selection anchor init");
+                return;
+            }
+
+            entity = viewer.entities.add({
+                id: "__wwv_selection_anchor",
+                point: {
+                    pixelSize: 0,
+                }
+            });
+            selectionEntityRef.current = entity;
+        } catch (error) {
+            console.warn("[GlobeView] Error accessing viewer entities:", error);
             return;
         }
 
-        const entity = viewer.entities.add({
-            id: "__wwv_selection_anchor",
-            point: {
-                pixelSize: 0,
-            }
-        });
-        selectionEntityRef.current = entity;
-
         return () => {
-            if (viewer && !viewer.isDestroyed() && viewer.entities) {
-                viewer.entities.remove(entity);
+            try {
+                if (viewer && !viewer.isDestroyed() && viewer.entities && entity) {
+                    viewer.entities.remove(entity);
+                }
+            } catch (error) {
+                // Ignore cleanup errors if viewer is partially destroyed
             }
         };
     }, [viewerReady]);
@@ -130,7 +140,7 @@ export default function GlobeView() {
     // Camera Sync: Camera -> Store (updates stats panel)
     useEffect(() => {
         const viewer = viewerRef.current;
-        if (!viewer || !viewer.camera || !viewerReady) return;
+        if (!viewer || viewer.isDestroyed() || !viewer.scene || !viewer.camera || !viewerReady) return;
 
         const updateStore = () => {
             const camera = viewer.camera;

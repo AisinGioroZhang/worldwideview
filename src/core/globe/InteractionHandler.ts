@@ -27,6 +27,9 @@ export function setupInteractionHandlers(
     viewer: CesiumViewer,
     hoveredEntityIdRef: React.MutableRefObject<string | null>
 ): () => void {
+    if (!viewer || viewer.isDestroyed() || !viewer.scene) {
+        return () => { };
+    }
     const canvas = viewer.scene.canvas;
 
     const setSelectedEntity = useStore.getState().setSelectedEntity;

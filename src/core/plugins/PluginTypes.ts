@@ -155,6 +155,13 @@ export interface WorldPlugin {
     // Optional UI extensions
     getSidebarComponent?(): ComponentType;
     getDetailComponent?(): ComponentType<{ entity: GeoEntity }>;
+    getSettingsComponent?(): ComponentType<{ pluginId: string }>;
+
+    /**
+     * Optional: Returns true if the plugin requires configuration (e.g. data source URL)
+     * before it can be fully enabled.
+     */
+    requiresConfiguration?(settings: any): boolean;
 }
 
 // ─── Data Bus Event Types ────────────────────────────────────

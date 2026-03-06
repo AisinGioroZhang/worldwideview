@@ -43,6 +43,15 @@ export function LayerPanel() {
         } else {
             pluginManager.enablePlugin(pluginId);
             useStore.getState().setLayerEnabled(pluginId, true);
+
+            // Check if plugin requires configuration
+            const managed = pluginManager.getPlugin(pluginId);
+            const settings = useStore.getState().dataConfig.pluginSettings[pluginId];
+            if (managed?.plugin.requiresConfiguration?.(settings)) {
+                useStore.getState().setConfigPanelOpen(true);
+                useStore.getState().setActiveConfigTab("overlay");
+                useStore.getState().setHighlightLayerId(pluginId);
+            }
         }
     };
 

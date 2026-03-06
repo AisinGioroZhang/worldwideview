@@ -14,9 +14,11 @@ import { AviationPlugin } from "@/plugins/aviation";
 import { MaritimePlugin } from "@/plugins/maritime";
 import { WildfirePlugin } from "@/plugins/wildfire";
 import { BordersPlugin } from "@/plugins/borders";
+import { CameraPlugin } from "@/plugins/camera";
 import { useStore } from "@/core/state/store";
 import { dataBus } from "@/core/data/DataBus";
 import { PanelToggleArrows } from "@/components/layout/PanelToggleArrows";
+import { FloatingVideoManager } from "@/components/video/FloatingVideoManager";
 import dynamic from "next/dynamic";
 
 // Dynamically import GlobeView with SSR disabled (CesiumJS requires window)
@@ -53,6 +55,7 @@ export function AppShell() {
             pluginRegistry.register(new MaritimePlugin());
             pluginRegistry.register(new WildfirePlugin());
             pluginRegistry.register(new BordersPlugin());
+            pluginRegistry.register(new CameraPlugin());
 
             // 2. Init PluginManager
             await pluginManager.init();
@@ -97,6 +100,7 @@ export function AppShell() {
             <CameraStatsPanel />
             <EntityInfoCard />
             <Timeline />
+            <FloatingVideoManager />
         </div>
     );
 }
