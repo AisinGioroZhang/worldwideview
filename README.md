@@ -22,6 +22,10 @@ npm run dev
 
 Visit `http://localhost:3000` to see the live globe.
 
+## Fair-Use Notice
+
+This application may contain copyrighted material the use of which has not always been specifically authorized by the copyright owner. Such material is made available for educational purposes, situational awareness, and to advance understanding of global events. It is believed that this constitutes a "fair use" of any such copyrighted material as provided for in section 107 of the US Copyright Law.
+
 ## Key Documentation Sections
 
 - **[Setup & Installation Guide](docs/SETUP.md)**: Detailed environment and local development setup.
