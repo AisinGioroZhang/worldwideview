@@ -36,6 +36,7 @@ export class CameraPlugin implements WorldPlugin {
     requiresConfiguration(settingsRaw: any): boolean {
         const settings = { sourceType: "url", ...(settingsRaw || {}) };
         if (settings.sourceType === "default") return false;
+        if (settings.sourceType === "insecam" && !settings.insecamCategory) return true;
         if (settings.sourceType === "url" && !settings.customUrl) return true;
         if (settings.sourceType === "file" && !settings.customData) return true;
         return false;
@@ -57,7 +58,29 @@ export class CameraPlugin implements WorldPlugin {
         try {
             let data: any[] = [];
 
-            if (settings.sourceType === "url") {
+            if (settings.sourceType === "insecam") {
+                if (!settings.insecamCategory || !settings.loaded) return []; // Wait for manual load
+                const res = await fetch(`/api/camera/insecam?category=${settings.insecamCategory}`);
+                if (!res.ok) throw new Error("Failed to load from Insecam API");
+                const rawData = await res.json();
+
+                this.cachedEntities = rawData.map((cam: any, index: number): GeoEntity => ({
+                    id: `insecam-${cam.id || index}`,
+                    pluginId: "camera",
+                    latitude: parseFloat(cam.loclat),
+                    longitude: parseFloat(cam.loclon),
+                    timestamp: new Date(),
+                    label: cam.city || cam.country || "Insecam Camera",
+                    properties: {
+                        ...cam,
+                        stream: cam.image,
+                        preview_url: cam.image,
+                        categories: cam.manufacturer ? [cam.manufacturer] : [],
+                    },
+                }));
+
+                return this.cachedEntities!;
+            } else if (settings.sourceType === "url") {
                 if (!settings.customUrl || !settings.loaded) return []; // Wait for manual load
                 // Ensure URL has a protocol
                 let fetchUrl = settings.customUrl;

@@ -12,13 +12,18 @@ export const CameraSettings: React.FC<{ pluginId: string }> = ({ pluginId }) => 
     const setHighlightLayerId = useStore((s) => s.setHighlightLayerId);
     const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleSourceTypeChange = (type: "default" | "url" | "file") => {
+    const handleSourceTypeChange = (type: "default" | "url" | "file" | "insecam") => {
         updatePluginSettings(pluginId, { sourceType: type, loaded: false });
         setHighlightLayerId(null);
     };
 
     const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
         updatePluginSettings(pluginId, { sourceType: settings.sourceType, customUrl: e.target.value, loaded: false });
+        setHighlightLayerId(null);
+    };
+
+    const handleInsecamCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        updatePluginSettings(pluginId, { sourceType: settings.sourceType, insecamCategory: e.target.value, loaded: false });
         setHighlightLayerId(null);
     };
 
@@ -106,6 +111,26 @@ export const CameraSettings: React.FC<{ pluginId: string }> = ({ pluginId }) => 
                     <Upload size={14} />
                     <span style={{ fontSize: 10 }}>File</span>
                 </button>
+                <button
+                    onClick={() => handleSourceTypeChange("insecam")}
+                    style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "8px",
+                        borderRadius: "var(--radius-md)",
+                        background: settings.sourceType === "insecam" ? "var(--accent-cyan-subtle)" : "var(--bg-tertiary)",
+                        border: settings.sourceType === "insecam" ? "1px solid var(--accent-cyan)" : "1px solid var(--border-subtle)",
+                        cursor: "pointer",
+                        color: settings.sourceType === "insecam" ? "var(--accent-cyan)" : "var(--text-secondary)",
+                        transition: "all 0.2s ease"
+                    }}
+                >
+                    <Globe size={14} />
+                    <span style={{ fontSize: 10 }}>Insecam</span>
+                </button>
             </div>
 
             {settings.sourceType === "url" && (
@@ -161,6 +186,41 @@ export const CameraSettings: React.FC<{ pluginId: string }> = ({ pluginId }) => 
                             ✓ Data loaded ({settings.customData.length} cameras)
                         </div>
                     )}
+                </div>
+            )}
+
+            {settings.sourceType === "insecam" && (
+                <div style={inputGroupStyle}>
+                    <label style={labelStyle}>Category</label>
+                    <div style={{ display: "flex", gap: "var(--space-sm)", marginTop: "4px" }}>
+                        <select
+                            value={settings.insecamCategory || ""}
+                            onChange={handleInsecamCategoryChange}
+                            style={{ ...inputStyle, flex: 1 }}
+                        >
+                            <option value="">Select Category</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="new">Newest</option>
+                        </select>
+                        <button
+                            onClick={handleLoadData}
+                            disabled={!settings.insecamCategory || isLoading}
+                            style={{
+                                background: "var(--accent-cyan)",
+                                color: "var(--bg-primary)",
+                                border: "none",
+                                borderRadius: "var(--radius-sm)",
+                                padding: "0 var(--space-md)",
+                                fontSize: 12,
+                                fontWeight: 500,
+                                cursor: (!settings.insecamCategory || isLoading) ? "not-allowed" : "pointer",
+                                opacity: (!settings.insecamCategory || isLoading) ? 0.5 : 1,
+                                transition: "all 0.2s ease"
+                            }}
+                        >
+                            {isLoading ? "Loading..." : "Load"}
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
