@@ -17,6 +17,7 @@ export function TimelineSync() {
     const setCurrentTime = useStore((s) => s.setCurrentTime);
     const setPlaying = useStore((s) => s.setPlaying);
     const isPlaybackMode = useStore((s) => s.isPlaybackMode);
+    const setTimelineAvailability = useStore((s) => s.setTimelineAvailability);
 
     // Playback state trackers
     const lastUpdateRef = useRef(Date.now());
@@ -63,6 +64,45 @@ export function TimelineSync() {
         });
         return unsub;
     }, []);
+
+    // Sync Timeline Availability
+    useEffect(() => {
+        if (!isPlaybackMode) return;
+
+        const fetchAvailability = (pluginId: string) => {
+            const plugin = pluginManager.getPlugin(pluginId)?.plugin;
+            if (!plugin) return;
+            const config = plugin.getServerConfig?.();
+            if (config?.availabilityEnabled && config.apiBasePath) {
+                fetch(`${config.apiBasePath}/availability`)
+                    .then((r) => r.json())
+                    .then((data) => {
+                        if (data.availability) {
+                            setTimelineAvailability(pluginId, data.availability);
+                        }
+                    })
+                    .catch((err) =>
+                        console.error(`[TimelineSync] Availability fetch failed for ${pluginId}`, err)
+                    );
+            }
+        };
+
+        // Fetch for already enabled plugins
+        const active = pluginManager.getEnabledPlugins();
+        for (const { plugin } of active) {
+            fetchAvailability(plugin.id);
+        }
+
+        const unsub = dataBus.on("layerToggled", ({ pluginId, enabled }) => {
+            if (enabled) {
+                fetchAvailability(pluginId);
+            } else {
+                setTimelineAvailability(pluginId, []);
+            }
+        });
+
+        return unsub;
+    }, [isPlaybackMode, setTimelineAvailability]);
 
     // Playback Mode: Trigger fetches when time changes significantly (e.g. by scrubber or playback)
     useEffect(() => {

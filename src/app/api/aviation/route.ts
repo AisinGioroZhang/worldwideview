@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCachedAviationData, getLatestFromSupabase } from "../../../lib/aviation-polling";
+import { getCachedAviationData } from "../../../lib/aviation/cache";
+import { getLatestFromSupabase } from "../../../lib/aviation/supabase";
 
 export async function GET() {
     // 1. Try to get cached data from our background polling service

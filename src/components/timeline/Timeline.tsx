@@ -14,7 +14,6 @@ export function Timeline() {
     const setPlaying = useStore((s) => s.setPlaying);
     const setPlaybackSpeed = useStore((s) => s.setPlaybackSpeed);
     const setPlaybackMode = useStore((s) => s.setPlaybackMode);
-    const setTimelineAvailability = useStore((s) => s.setTimelineAvailability);
     const timeRange = useStore((s) => s.timeRange);
 
     const [mounted, setMounted] = useState(false);
@@ -22,20 +21,6 @@ export function Timeline() {
     useEffect(() => {
         setMounted(true);
     }, []);
-
-    // Fetch availability when playback mode is toggled on
-    useEffect(() => {
-        if (isPlaybackMode) {
-            fetch("/api/aviation/availability")
-                .then((r) => r.json())
-                .then((data) => {
-                    if (data.availability) {
-                        setTimelineAvailability(data.availability);
-                    }
-                })
-                .catch(console.error);
-        }
-    }, [isPlaybackMode, setTimelineAvailability]);
 
     const totalMs = timeRange.end.getTime() - timeRange.start.getTime();
     const currentMs = currentTime.getTime() - timeRange.start.getTime();
@@ -98,7 +83,7 @@ export function Timeline() {
                     {/* Availability highlight segments */}
                     {isPlaybackMode && showTimelineHighlight && mounted && (
                         <div className="timeline__highlight-track">
-                            {timelineAvailability.map((range, idx) => {
+                            {Object.values(timelineAvailability).flat().map((range, idx) => {
                                 const rangeStartMs = Math.max(0, range.start - timeRange.start.getTime());
                                 const rangeEndMs = Math.min(totalMs, range.end - timeRange.start.getTime());
                                 if (rangeStartMs > totalMs || rangeEndMs < 0) return null;

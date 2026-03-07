@@ -11,7 +11,7 @@ export interface TimelineSlice {
     playbackSpeed: number;
     isPlaybackMode: boolean;
     playbackTime: number;
-    timelineAvailability: { start: number; end: number }[];
+    timelineAvailability: Record<string, { start: number; end: number }[]>;
     setCurrentTime: (time: Date) => void;
     setTimeWindow: (window: TimeWindow) => void;
     setTimeRange: (range: TimeRange) => void;
@@ -19,7 +19,7 @@ export interface TimelineSlice {
     setPlaybackSpeed: (speed: number) => void;
     setPlaybackMode: (mode: boolean) => void;
     setPlaybackTime: (time: number) => void;
-    setTimelineAvailability: (availability: { start: number; end: number }[]) => void;
+    setTimelineAvailability: (pluginId: string, availability: { start: number; end: number }[]) => void;
 }
 
 function getTimeRange(window: TimeWindow): TimeRange {
@@ -45,7 +45,7 @@ export const createTimelineSlice: StateCreator<AppStore, [], [], TimelineSlice> 
     playbackSpeed: 1,
     isPlaybackMode: false,
     playbackTime: Date.now(),
-    timelineAvailability: [],
+    timelineAvailability: {},
     setCurrentTime: (time) => set({ currentTime: time }),
     setTimeWindow: (window) =>
         set({ timeWindow: window, timeRange: getTimeRange(window) }),
@@ -54,5 +54,7 @@ export const createTimelineSlice: StateCreator<AppStore, [], [], TimelineSlice> 
     setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
     setPlaybackMode: (mode) => set({ isPlaybackMode: mode }),
     setPlaybackTime: (time) => set({ playbackTime: time }),
-    setTimelineAvailability: (availability) => set({ timelineAvailability: availability }),
+    setTimelineAvailability: (pluginId, availability) => set((state) => ({
+        timelineAvailability: { ...state.timelineAvailability, [pluginId]: availability }
+    })),
 });
