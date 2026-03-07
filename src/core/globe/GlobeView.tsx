@@ -1,4 +1,5 @@
 "use client";
+// @refresh reset
 
 import React, { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { Viewer } from "resium";
@@ -25,6 +26,7 @@ import { useCameraActions } from "./hooks/useCameraActions";
 import { useSelectionAnchor } from "./hooks/useSelectionAnchor";
 import { useCameraSync } from "./hooks/useCameraSync";
 import { useEntityRendering } from "./hooks/useEntityRendering";
+import { useFrustumRendering } from "./hooks/useFrustumRendering";
 
 // Set Cesium Ion token
 if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_CESIUM_TOKEN) {
@@ -79,6 +81,11 @@ export default function GlobeView() {
     useCameraSync(viewerRef.current, viewerReady, setCameraPosition, setFps);
     useCameraActions(viewerRef.current, viewerReady);
     useEntityRendering(viewerRef.current, viewerReady, visibleEntities, animatablesMapRef, hoveredEntityIdRef, sceneSettings);
+
+    // Frustum outlines for camera entities
+    const cameraLayerEnabled = layers["camera"]?.enabled ?? false;
+    const cameraEntities = entitiesByPlugin["camera"] || [];
+    useFrustumRendering(viewerRef.current, viewerReady, cameraEntities, cameraLayerEnabled);
 
     // Camera preset events
     useEffect(() => {
