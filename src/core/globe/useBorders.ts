@@ -114,7 +114,7 @@ function addLabelsAndPolylines(ds: GeoJsonDataSource): void {
             horizontalOrigin: HorizontalOrigin.CENTER,
             distanceDisplayCondition: new DistanceDisplayCondition(10.0, 5_000_000.0), // Only show within 5000km
             scaleByDistance: new NearFarScalar(5.0e5, 1.2, 5.0e6, 0.4),
-            disableDepthTestDistance: 100_000, // 100km — prevents z-fighting near camera, but still occludes behind terrain
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
         });
 
         // Border polyline (clamped to ground/3D tiles)

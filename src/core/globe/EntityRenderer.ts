@@ -161,7 +161,6 @@ function renderSingleEntity(
         if (options.iconUrl) {
             addedPrimitive = billboards.add({
                 position, image: options.iconUrl, scale: 0.5,
-                show: false,
                 verticalOrigin: VerticalOrigin.CENTER, horizontalOrigin: HorizontalOrigin.CENTER,
                 rotation: options.rotation ? -CesiumMath.toRadians(options.rotation) : 0,
                 color, scaleByDistance: new NearFarScalar(1e3, 1.0, 1e7, 0.3), id: clickId,
@@ -171,7 +170,6 @@ function renderSingleEntity(
         } else {
             addedPrimitive = points.add({
                 position, pixelSize: options.size || 6, color,
-                show: false,
                 outlineColor: options.outlineColor ? Color.fromCssColorString(options.outlineColor) : Color.BLACK,
                 outlineWidth: options.outlineWidth || 1,
                 scaleByDistance: new NearFarScalar(1e3, 1.0, 1e7, 0.4), id: clickId,

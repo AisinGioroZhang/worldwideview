@@ -42,6 +42,14 @@ export function LayerPanel() {
             useStore.getState().setLayerEnabled(pluginId, false);
             useStore.getState().clearEntities(pluginId);
             useStore.getState().setEntityCount(pluginId, 0);
+            // Clear hovered/selected if they belong to this layer
+            const state = useStore.getState();
+            if (state.hoveredEntity?.pluginId === pluginId) {
+                state.setHoveredEntity(null, null);
+            }
+            if (state.selectedEntity?.pluginId === pluginId) {
+                state.setSelectedEntity(null);
+            }
         } else {
             pluginManager.enablePlugin(pluginId);
             useStore.getState().setLayerEnabled(pluginId, true);

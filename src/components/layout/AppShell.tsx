@@ -19,112 +19,81 @@ import { useStore } from "@/core/state/store";
 import { dataBus } from "@/core/data/DataBus";
 import { PanelToggleArrows } from "@/components/layout/PanelToggleArrows";
 import { FloatingVideoManager } from "@/components/video/FloatingVideoManager";
+import { BootOverlay } from "@/components/common/BootOverlay";
+import { useBootSequence } from "@/core/hooks/useBootSequence";
+import { DataBusSubscriber } from "./DataBusSubscriber";
 import dynamic from "next/dynamic";
 
-// A small functional component strictly for subscribing to non-rendering state/events
-function DataBusSubscriber() {
-    const setPollingInterval = useStore((s) => s.setPollingInterval);
-    const setEntities = useStore((s) => s.setEntities);
-    const setEntityCount = useStore((s) => s.setEntityCount);
-    const cacheMaxAge = useStore((s) => s.dataConfig.cacheMaxAge);
-
-    useEffect(() => {
-        // Sync cache limit any time the UI setting changes
-        pluginManager.setCacheMaxAge(cacheMaxAge);
-    }, [cacheMaxAge]);
-
-    useEffect(() => {
-        const unsubReg = dataBus.on("pluginRegistered", ({ pluginId, defaultInterval }) => {
-            // Only set if we don't already have one (e.g. from persisted state later)
-            const currentIntervals = useStore.getState().dataConfig.pollingIntervals;
-            if (!currentIntervals[pluginId]) {
-                setPollingInterval(pluginId, defaultInterval);
-            }
-        });
-
-        const unsubData = dataBus.on("dataUpdated", ({ pluginId, entities }) => {
-            setEntities(pluginId, entities);
-            setEntityCount(pluginId, entities.length);
-        });
-
-        return () => {
-            unsubReg();
-            unsubData();
-        };
-    }, [setPollingInterval, setEntities, setEntityCount]);
-
-    return null;
-}
-
-// Dynamically import GlobeView with SSR disabled (CesiumJS requires window)
 const GlobeView = dynamic(() => import("@/core/globe/GlobeView"), {
     ssr: false,
-    loading: () => (
-        <div
-            style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "var(--bg-primary)",
-            }}
-        >
-            <div className="status-badge">
-                <span className="status-badge__dot" />
-                Loading Engine...
-            </div>
-        </div>
-    ),
 });
 
 export function AppShell() {
     const initLayer = useStore((s) => s.initLayer);
+    const boot = useBootSequence();
 
     useEffect(() => {
         const startPlatform = async () => {
             console.log("[AppShell] Initializing Platform...");
 
-            // 1. Register built-in plugins
             pluginRegistry.register(new AviationPlugin());
             pluginRegistry.register(new MaritimePlugin());
             pluginRegistry.register(new WildfirePlugin());
             pluginRegistry.register(new BordersPlugin());
             pluginRegistry.register(new CameraPlugin());
 
-            // 2. Init PluginManager
             await pluginManager.init();
 
-            // 3. Register and init Layer state for all plugins
             for (const plugin of pluginRegistry.getAll()) {
                 await pluginManager.registerPlugin(plugin);
                 initLayer(plugin.id);
             }
 
-            console.log("[AppShell] Platform Ready.");
+            console.log("[AppShell] Platform Ready. Waiting for globe tiles...");
         };
+
+        // Start boot sequence when globe tiles are loaded
+        const unsubGlobe = dataBus.on("globeReady", () => {
+            console.log("[AppShell] Globe ready — starting boot sequence.");
+            boot.startBoot();
+        });
 
         startPlatform();
 
         return () => {
+            unsubGlobe();
+            boot.cleanup();
             pluginManager.destroy();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initLayer]);
 
+    // Boot-* classes drive entrance animations.
+    // Once phase is "ready" we remove them so normal CSS
+    // (e.g. .sidebar--closed { opacity:0 }) takes over.
+    const isBooting = boot.phase !== "ready";
+    const rootClasses = [
+        "app-shell",
+        isBooting && boot.headerReady ? "boot-header" : "",
+        isBooting && boot.sidebarReady ? "boot-sidebar" : "",
+        isBooting && boot.timelineReady ? "boot-timeline" : "",
+        isBooting && boot.controlsReady ? "boot-controls" : "",
+        !isBooting ? "boot-done" : "",
+    ].filter(Boolean).join(" ");
+
     return (
-        <div className="app-shell">
-            {/* Background Globe */}
+        <div className={rootClasses}>
+            <BootOverlay visible={boot.phase === "loading"} />
+
             <div className="app-shell__globe">
                 <GlobeView />
             </div>
 
-            {/* Logic Syncs */}
             <TimelineSync />
             <DataBusSubscriber />
 
-            {/* Foreground UI Components */}
-            <PanelToggleArrows />
             <Header />
+            <PanelToggleArrows />
             <LayerPanel />
             <DataConfigPanel />
             <CameraStatsPanel />

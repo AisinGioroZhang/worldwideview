@@ -1,8 +1,25 @@
 import { useEffect } from "react";
+import { Cartesian3 } from "cesium";
 import type { Viewer as CesiumViewer } from "cesium";
 import type { GeoEntity, CesiumEntityOptions } from "@/core/plugins/PluginTypes";
-import { renderEntitiesChunked, renderEntities, AnimatableItem } from "../EntityRenderer";
+import { renderEntitiesChunked, AnimatableItem } from "../EntityRenderer";
 import { createUpdateLoop } from "../AnimationLoop";
+
+/** Sort entities by distance to camera (closest first) for progressive loading. */
+function sortByDistanceToCamera(
+    entities: Array<{ entity: GeoEntity; options: CesiumEntityOptions }>,
+    viewer: CesiumViewer
+): Array<{ entity: GeoEntity; options: CesiumEntityOptions }> {
+    const camPos = viewer.camera.positionWC;
+    const scratch = new Cartesian3();
+    return [...entities].sort((a, b) => {
+        const posA = Cartesian3.fromDegrees(a.entity.longitude, a.entity.latitude, a.entity.altitude || 0, undefined, scratch);
+        const distA = Cartesian3.distanceSquared(camPos, posA);
+        const posB = Cartesian3.fromDegrees(b.entity.longitude, b.entity.latitude, b.entity.altitude || 0, undefined, scratch);
+        const distB = Cartesian3.distanceSquared(camPos, posB);
+        return distA - distB;
+    });
+}
 
 export function useEntityRendering(
     viewer: CesiumViewer | null,
@@ -34,18 +51,34 @@ export function useEntityRendering(
             }
         }
 
-        let updatePositions: (() => void) | undefined;
+        // Sort entities closest-first so they progressively load from camera outward
+        const sorted = sortByDistanceToCamera(visibleEntities, viewer);
 
-        // Use chunked rendering for large updates to prevent main thread lockups
-        renderEntitiesChunked(viewer, visibleEntities, animatablesMapRef.current).then(animatables => {
-            if (!viewer || viewer.isDestroyed()) return;
-            updatePositions = createUpdateLoop(viewer, animatables, hoveredEntityIdRef);
-            viewer.scene.preUpdate.addEventListener(updatePositions);
-        });
+        // Attach animation loop immediately with a live getter so it sees entities
+        // as they are added during chunked loading (horizon culling runs from frame 1)
+        const updatePositions = createUpdateLoop(
+            viewer,
+            () => Array.from(animatablesMapRef.current.values()),
+            hoveredEntityIdRef
+        );
+        viewer.scene.preUpdate.addEventListener(updatePositions);
+
+        // Chunked rendering fills the map progressively; animation loop picks up new items each frame
+        renderEntitiesChunked(viewer, sorted, animatablesMapRef.current);
 
         return () => {
-            if (updatePositions && !viewer.isDestroyed()) {
+            if (!viewer.isDestroyed()) {
                 viewer.scene.preUpdate.removeEventListener(updatePositions);
+                // Synchronously flush all labels to prevent stale labels persisting
+                const labels = (viewer as any)?._wwvLabels;
+                if (labels) {
+                    for (const item of animatablesMapRef.current.values()) {
+                        if (item.labelPrimitive && !item.labelPrimitive.isDestroyed?.()) {
+                            labels.remove(item.labelPrimitive);
+                            item.labelPrimitive = undefined;
+                        }
+                    }
+                }
             }
         };
     }, [

@@ -115,8 +115,9 @@ export default function GlobeView() {
         viewer.scene.msaaSamples = sceneSettings.msaaSamples;
         viewer.scene.postProcessStages.fxaa.enabled = sceneSettings.enableFxaa;
 
-        // Start camera far out (deep space) for fly-in effect
-        viewer.camera.setView({ destination: Cartesian3.fromDegrees(0, 20, 60000000) });
+        // Pre-load LOD trick: Start camera close to Earth to force downloading high-detail tiles.
+        // We will teleport to deep space right before the overlay fades.
+        viewer.camera.setView({ destination: Cartesian3.fromDegrees(0, 20, 10000000) });
 
         // Initialize Google Photorealistic 3D Tiles once
         try {
@@ -129,6 +130,11 @@ export default function GlobeView() {
             // Signal when initial tiles are loaded (globe looks solid)
             const removeListener = tileset.initialTilesLoaded.addEventListener(() => {
                 console.log("[GlobeView] Initial tiles loaded — globe ready.");
+
+                // Teleport to deep space behind the still-visible overlay
+                // so the fly-in animation comes from afar smoothly.
+                viewer.camera.setView({ destination: Cartesian3.fromDegrees(0, 20, 60000000) });
+
                 dataBus.emit("globeReady", {} as Record<string, never>);
                 removeListener();
             });

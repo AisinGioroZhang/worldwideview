@@ -43,7 +43,7 @@ export interface UISlice {
 export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => ({
     leftSidebarOpen: true,
     rightSidebarOpen: false,
-    configPanelOpen: false,
+    configPanelOpen: true,
     filterPanelOpen: false,
     selectedEntity: null,
     hoveredEntity: null,
