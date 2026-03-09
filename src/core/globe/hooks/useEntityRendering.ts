@@ -1,25 +1,9 @@
 import { useEffect } from "react";
-import { Cartesian3 } from "cesium";
 import type { Viewer as CesiumViewer } from "cesium";
 import type { GeoEntity, CesiumEntityOptions } from "@/core/plugins/PluginTypes";
 import { renderEntitiesChunked, AnimatableItem } from "../EntityRenderer";
 import { createUpdateLoop } from "../AnimationLoop";
 
-/** Sort entities by distance to camera (closest first) for progressive loading. */
-function sortByDistanceToCamera(
-    entities: Array<{ entity: GeoEntity; options: CesiumEntityOptions }>,
-    viewer: CesiumViewer
-): Array<{ entity: GeoEntity; options: CesiumEntityOptions }> {
-    const camPos = viewer.camera.positionWC;
-    const scratch = new Cartesian3();
-    return [...entities].sort((a, b) => {
-        const posA = Cartesian3.fromDegrees(a.entity.longitude, a.entity.latitude, a.entity.altitude || 0, undefined, scratch);
-        const distA = Cartesian3.distanceSquared(camPos, posA);
-        const posB = Cartesian3.fromDegrees(b.entity.longitude, b.entity.latitude, b.entity.altitude || 0, undefined, scratch);
-        const distB = Cartesian3.distanceSquared(camPos, posB);
-        return distA - distB;
-    });
-}
 
 export function useEntityRendering(
     viewer: CesiumViewer | null,
@@ -51,9 +35,6 @@ export function useEntityRendering(
             }
         }
 
-        // Sort entities closest-first so they progressively load from camera outward
-        const sorted = sortByDistanceToCamera(visibleEntities, viewer);
-
         // Attach animation loop immediately with a live getter so it sees entities
         // as they are added during chunked loading (horizon culling runs from frame 1)
         const updatePositions = createUpdateLoop(
@@ -64,7 +45,7 @@ export function useEntityRendering(
         viewer.scene.preUpdate.addEventListener(updatePositions);
 
         // Chunked rendering fills the map progressively; animation loop picks up new items each frame
-        renderEntitiesChunked(viewer, sorted, animatablesMapRef.current);
+        renderEntitiesChunked(viewer, visibleEntities, animatablesMapRef.current);
 
         return () => {
             if (!viewer.isDestroyed()) {

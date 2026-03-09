@@ -240,7 +240,7 @@ export async function renderEntitiesChunked(
 
     await globalChunkedProcessor.processChunked(
         visibleEntities,
-        500, // Process 500 items per chunk
+        1000, // Process 1000 items per chunk
         (chunk) => {
             if (viewer.isDestroyed()) return;
             for (let i = 0; i < chunk.length; i++) {
