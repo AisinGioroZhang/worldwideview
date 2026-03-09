@@ -2,19 +2,19 @@
 
 import React, { ChangeEvent } from "react";
 import { useStore } from "@/core/state/store";
-import { Upload, Link as LinkIcon, Globe, RotateCcw } from "lucide-react";
+import { Upload, Link as LinkIcon, Database, RotateCcw } from "lucide-react";
 import { pluginManager } from "@/core/plugins/PluginManager";
 import { inputGroupStyle, labelStyle, inputStyle, loadButtonStyle, sourceTabStyle } from "./cameraSettingsStyles";
 import { InsecamSection } from "./InsecamSection";
 
 export const CameraSettings: React.FC<{ pluginId: string }> = ({ pluginId }) => {
     const settingsRaw = useStore((s) => s.dataConfig.pluginSettings[pluginId]);
-    const settings = { sourceType: "url", ...(settingsRaw || {}) };
+    const settings = { sourceType: "default", ...(settingsRaw || {}) };
     const updatePluginSettings = useStore((s) => s.updatePluginSettings);
     const setHighlightLayerId = useStore((s) => s.setHighlightLayerId);
     const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleSourceTypeChange = (type: "url" | "file" | "insecam") => {
+    const handleSourceTypeChange = (type: "default" | "url" | "file" | "insecam") => {
         updatePluginSettings(pluginId, { sourceType: type });
         setHighlightLayerId(null);
     };
@@ -65,7 +65,7 @@ export const CameraSettings: React.FC<{ pluginId: string }> = ({ pluginId }) => 
             </div>
 
             <div style={{ display: "flex", gap: "var(--space-xs)" }}>
-                {([["url", LinkIcon, "URL"], ["file", Upload, "File"]] as const).map(
+                {([["default", Database, "Default"], ["url", LinkIcon, "URL"], ["file", Upload, "File"]] as const).map(
                     ([type, Icon, label]) => (
                         <button key={type} onClick={() => handleSourceTypeChange(type as any)} style={sourceTabStyle(settings.sourceType === type)}>
                             <Icon size={14} />
@@ -74,6 +74,15 @@ export const CameraSettings: React.FC<{ pluginId: string }> = ({ pluginId }) => 
                     )
                 )}
             </div>
+
+            {settings.sourceType === "default" && (
+                <div style={inputGroupStyle}>
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Built-in camera dataset</div>
+                    <button onClick={handleLoadData} disabled={isLoading} style={loadButtonStyle(isLoading)}>
+                        {isLoading ? "Loading..." : settings.loaded ? "Reload" : "Load"}
+                    </button>
+                </div>
+            )}
 
             {settings.sourceType === "url" && (
                 <div style={inputGroupStyle}>

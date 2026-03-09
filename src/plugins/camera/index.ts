@@ -27,7 +27,7 @@ export class CameraPlugin implements WorldPlugin {
     destroy(): void { this.insecamAbort?.abort(); this.context = null; }
 
     requiresConfiguration(settingsRaw: any): boolean {
-        const s = { sourceType: "url", ...(settingsRaw || {}) };
+        const s = { sourceType: "default", ...(settingsRaw || {}) };
         if (s.sourceType === "default") return false;
         if (s.sourceType === "insecam" && !s.insecamCategory) return true;
         if (s.sourceType === "url" && !s.customUrl) return true;
@@ -40,7 +40,7 @@ export class CameraPlugin implements WorldPlugin {
 
     async fetch(_timeRange: TimeRange): Promise<GeoEntity[]> {
         const raw = useStore.getState().dataConfig.pluginSettings[this.id];
-        const settings = { sourceType: "url", ...(raw || {}) };
+        const settings = { sourceType: "default", ...(raw || {}) };
 
         if (settings.action === "reset") {
             this.insecamAbort?.abort();
@@ -49,13 +49,16 @@ export class CameraPlugin implements WorldPlugin {
             return [];
         }
 
-        if (settings.action !== "load" || settings.actionId === this.lastActionId) {
+        const isAutoDefault = settings.sourceType === "default" && !this.lastActionId && !this.sourceBuckets["default"];
+        if (!isAutoDefault && (settings.action !== "load" || settings.actionId === this.lastActionId)) {
             return this.getAllEntities();
         }
-        this.lastActionId = settings.actionId;
+        this.lastActionId = settings.actionId ?? -1;
 
         try {
-            if (settings.sourceType === "insecam") {
+            if (settings.sourceType === "default") {
+                await this.loadDefaultSource();
+            } else if (settings.sourceType === "insecam") {
                 await this.startInsecamStream(settings);
             } else if (settings.sourceType === "url") {
                 await this.loadUrlSource(settings);
@@ -67,6 +70,13 @@ export class CameraPlugin implements WorldPlugin {
             console.error("[CameraPlugin] Fetch error:", error);
             this.context?.onError(error instanceof Error ? error : new Error(String(error)));
             return this.getAllEntities();
+        }
+    }
+
+    private async loadDefaultSource(): Promise<void> {
+        const data = await SmartFetcher.fetchJson("/cameras.json");
+        if (Array.isArray(data)) {
+            this.sourceBuckets["default"] = data.map((c, i) => mapRawCamera(c, i, "default"));
         }
     }
 
