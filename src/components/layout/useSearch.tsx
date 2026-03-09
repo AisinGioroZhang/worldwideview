@@ -193,7 +193,7 @@ export function useSearch() {
                 if (res.ok) {
                     const data = await res.json();
                     if (data.lat && data.lon) {
-                        const { distance, maxPitch } = getZoomForTypes(data.types);
+                        const { distance, maxPitch } = getZoomForTypes(data.types, data.viewport);
                         dataBus.emit("cameraGoTo", {
                             lat: data.lat,
                             lon: data.lon,

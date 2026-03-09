@@ -63,7 +63,7 @@ export function buildUserKeyHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
     for (const entry of API_KEY_REGISTRY) {
         const value = localStorage.getItem(entry.localStorageKey);
-        if (value) {
+        if (value && value.length >= 20) {
             headers[entry.headerName] = value;
         }
     }

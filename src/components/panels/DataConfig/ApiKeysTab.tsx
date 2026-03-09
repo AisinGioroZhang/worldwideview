@@ -85,7 +85,10 @@ export function ApiKeysTab() {
                                 onChange={(e) => handleChange(entry.service, e.target.value)}
                                 style={keyInputStyle}
                                 spellCheck={false}
-                                autoComplete="off"
+                                autoComplete="new-password"
+                                data-form-type="other"
+                                data-lpignore="true"
+                                name={`wwv-apikey-${entry.service}`}
                             />
                             <button
                                 style={toggleBtnStyle}

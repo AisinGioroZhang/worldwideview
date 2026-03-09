@@ -49,6 +49,10 @@ export function categorizePlace(types: string[]): PlaceCategory {
     return "address";
 }
 
+// ─── Viewport Types ──────────────────────────────────────────
+export interface LatLng { lat: number; lng: number }
+export interface Viewport { northeast: LatLng; southwest: LatLng }
+
 // ─── Zoom Params ─────────────────────────────────────────────
 const ZOOM_BY_CATEGORY: Record<PlaceCategory, ZoomParams> = {
     address: { distance: 1_000, maxPitch: -40 },
@@ -59,14 +63,47 @@ const ZOOM_BY_CATEGORY: Record<PlaceCategory, ZoomParams> = {
 
 const CITY_ZOOM: ZoomParams = { distance: 50_000, maxPitch: -50 };
 
-/** Get appropriate camera zoom params based on the detail types. */
-export function getZoomForTypes(types?: string[]): ZoomParams {
+const EARTH_RADIUS_M = 6_371_000;
+const VIEWPORT_PADDING = 1.8; // 80% extra to keep margins
+
+/** Haversine distance between two lat/lng points in metres. */
+function haversineMetres(a: LatLng, b: LatLng): number {
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const h =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) *
+        Math.sin(dLng / 2) ** 2;
+    return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
+}
+
+/** Compute camera distance from viewport bounds so the place fits in frame. */
+export function distanceFromViewport(vp: Viewport): number {
+    const diagonal = haversineMetres(vp.southwest, vp.northeast);
+    return Math.max(diagonal * VIEWPORT_PADDING, 500); // min 500 m
+}
+
+/** Get camera zoom params, preferring viewport bounds when available. */
+export function getZoomForTypes(
+    types?: string[],
+    viewport?: Viewport | null
+): ZoomParams {
+    // Use viewport when available for precise fit
+    if (viewport?.northeast && viewport?.southwest) {
+        const distance = distanceFromViewport(viewport);
+        const category = categorizePlace(types || []);
+        const pitch = ZOOM_BY_CATEGORY[category].maxPitch;
+        return { distance, maxPitch: pitch };
+    }
+
+    // Fallback to classification-based defaults
     if (!types || types.length === 0) {
         return ZOOM_BY_CATEGORY.region;
     }
-    // Cities get a special mid-range zoom
     if (types.includes("locality")) return CITY_ZOOM;
 
     const category = categorizePlace(types);
     return ZOOM_BY_CATEGORY[category];
 }
+
