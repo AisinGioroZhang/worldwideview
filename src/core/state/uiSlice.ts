@@ -25,6 +25,7 @@ export interface UISlice {
     floatingStreams: FloatingStream[];
     activeConfigTab: "intel" | "filters" | "cache" | "overlay" | "apikeys";
     highlightLayerId: string | null;
+    openMobilePanel: "left" | "right" | null;
     toggleLeftSidebar: () => void;
     toggleRightSidebar: () => void;
     toggleConfigPanel: () => void;
@@ -38,6 +39,7 @@ export interface UISlice {
     setActiveConfigTab: (tab: "intel" | "filters" | "cache" | "overlay" | "apikeys") => void;
     setHighlightLayerId: (id: string | null) => void;
     setConfigPanelOpen: (open: boolean) => void;
+    setOpenMobilePanel: (panel: "left" | "right" | null) => void;
 }
 
 export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => ({
@@ -52,6 +54,7 @@ export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => (
     floatingStreams: [],
     activeConfigTab: "filters",
     highlightLayerId: null,
+    openMobilePanel: null,
     toggleLeftSidebar: () =>
         set((state) => ({ leftSidebarOpen: !state.leftSidebarOpen })),
     toggleRightSidebar: () =>
@@ -96,5 +99,9 @@ export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => (
     setActiveConfigTab: (tab) => set({ activeConfigTab: tab }),
     setHighlightLayerId: (id) => set({ highlightLayerId: id }),
     setConfigPanelOpen: (open) => set({ configPanelOpen: open }),
+    setOpenMobilePanel: (panel) =>
+        set((state) => ({
+            openMobilePanel: state.openMobilePanel === panel ? null : panel,
+        })),
 });
 

@@ -738,34 +738,186 @@ html, body {
 }
 
 /* ─── Responsive ──────────────────────────────────────────── */
+
+/* ── Mobile HUD Bar (shown only on mobile via JS) ───────── */
+.mobile-hud-bar {
+  position: fixed;
+  top: 56px; /* below condensed header */
+  left: 0;
+  right: 0;
+  z-index: 99;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+
+.mobile-hud-bar__scroll {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-hud-bar__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-hud-bar__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* ── Tablet ≤768px ──────────────────────────────────────── */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 260px;
+
+  /* ---- Header ---- */
+  .header--mobile {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: 0;
+    border-top: none;
   }
-  .header__subtitle {
+
+  .header__search-expanded {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+  }
+
+  .header__search-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* ---- Sidebar as slide-in panel ---- */
+  .sidebar.sidebar--mobile {
+    width: 80vw;
+    max-width: 320px;
+    top: 0;
+    bottom: 0;
+    z-index: 150;
+    border-radius: 0;
+    transition: transform var(--duration-slow) var(--ease-smooth),
+                opacity var(--duration-slow) var(--ease-smooth);
+  }
+
+  .sidebar--left.sidebar--mobile {
+    left: 0;
+    border-left: none;
+  }
+
+  .sidebar--right.sidebar--mobile {
+    right: 0;
+    border-right: none;
+  }
+
+  .sidebar--left.sidebar--mobile.sidebar--closed {
+    transform: translateX(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sidebar--right.sidebar--mobile.sidebar--closed {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ---- Pull tabs: always fixed at screen edges on mobile ---- */
+  .panel-toggle-btn--mobile.panel-toggle-btn--left,
+  .panel-toggle-btn--mobile.panel-toggle-btn--left.panel-toggle-btn--open {
+    left: 0;
+    width: 44px;
+    transform: translate(-20px, -50%);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    border-left: none;
+    z-index: 160;
+  }
+
+  .panel-toggle-btn--mobile.panel-toggle-btn--left:hover,
+  .panel-toggle-btn--mobile.panel-toggle-btn--left.panel-toggle-btn--open:hover {
+    transform: translate(0, -50%);
+  }
+
+  .panel-toggle-btn--mobile.panel-toggle-btn--right,
+  .panel-toggle-btn--mobile.panel-toggle-btn--right.panel-toggle-btn--open {
+    right: 0;
+    width: 44px;
+    transform: translate(20px, -50%);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    border-right: none;
+    z-index: 160;
+  }
+
+  .panel-toggle-btn--mobile.panel-toggle-btn--right:hover,
+  .panel-toggle-btn--mobile.panel-toggle-btn--right.panel-toggle-btn--open:hover {
+    transform: translate(0, -50%);
+  }
+
+  /* ---- Timeline compact ---- */
+  .timeline {
+    left: var(--space-sm);
+    right: var(--space-sm);
+    bottom: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+  }
+
+  .timeline__controls-row {
     display: none;
   }
-  .timeline__window-selector {
+
+  /* ---- Camera stats hidden ---- */
+  .camera-stats {
     display: none;
+  }
+
+  /* ---- Touch-friendly buttons ---- */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 13px;
+  }
+
+  /* Except inside HUD bar where we want compact buttons */
+  .mobile-hud-bar .btn {
+    min-height: 36px;
+    min-width: auto;
+    font-size: 12px;
+  }
+
+  .panel-tab {
+    min-height: 40px;
+    padding: var(--space-sm) var(--space-md);
+    font-size: 12px;
   }
 }
 
+/* ── Small phone ≤480px ─────────────────────────────────── */
 @media (max-width: 480px) {
-  .header {
-    padding: var(--space-sm) var(--space-md);
+  .header--mobile {
+    padding: var(--space-xs) var(--space-sm);
+    height: 44px;
   }
-  .sidebar {
-    width: 100%;
-    left: 0;
-    right: 0;
-    bottom: 60px;
-    top: auto;
-    height: 50vh;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+
+  .sidebar.sidebar--mobile {
+    width: 85vw;
   }
-  .sidebar--left.sidebar--closed,
-  .sidebar--right.sidebar--closed {
-    transform: translateY(100%);
+
+  .timeline {
+    left: var(--space-xs);
+    right: var(--space-xs);
+    bottom: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
   }
 }
 

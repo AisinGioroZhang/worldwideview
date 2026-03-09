@@ -21,7 +21,9 @@ import { PanelToggleArrows } from "@/components/layout/PanelToggleArrows";
 import { FloatingVideoManager } from "@/components/video/FloatingVideoManager";
 import { BootOverlay } from "@/components/common/BootOverlay";
 import { useBootSequence } from "@/core/hooks/useBootSequence";
+import { useIsMobile } from "@/core/hooks/useIsMobile";
 import { DataBusSubscriber } from "./DataBusSubscriber";
+import { MobileHudBar } from "./MobileHudBar";
 import dynamic from "next/dynamic";
 
 const GlobeView = dynamic(() => import("@/core/globe/GlobeView"), {
@@ -31,6 +33,7 @@ const GlobeView = dynamic(() => import("@/core/globe/GlobeView"), {
 export function AppShell() {
     const initLayer = useStore((s) => s.initLayer);
     const boot = useBootSequence();
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         const startPlatform = async () => {
@@ -93,10 +96,11 @@ export function AppShell() {
             <DataBusSubscriber />
 
             <Header />
+            {isMobile && <MobileHudBar />}
             <PanelToggleArrows />
             <LayerPanel />
             <DataConfigPanel />
-            <CameraStatsPanel />
+            {!isMobile && <CameraStatsPanel />}
             <EntityInfoCard />
             <Timeline />
             <FloatingVideoManager />

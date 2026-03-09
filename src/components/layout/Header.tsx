@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/core/state/store";
 import { dataBus } from "@/core/data/DataBus";
 import { pluginManager } from "@/core/plugins/PluginManager";
-import { Globe, Menu, Settings, Filter } from "lucide-react";
+import { Globe, Search, X } from "lucide-react";
 import { SearchBar } from "./SearchBar";
+import { useIsMobile } from "@/core/hooks/useIsMobile";
 
 const REGIONS = [
     { id: "global", label: "Global", icon: Globe },
@@ -21,14 +22,10 @@ const REGIONS = [
 const TIME_WINDOWS = ["1h", "6h", "24h", "48h", "7d"] as const;
 
 export function Header() {
+    const isMobile = useIsMobile();
     const timeWindow = useStore((s) => s.timeWindow);
     const setTimeWindow = useStore((s) => s.setTimeWindow);
-    const toggleLeftSidebar = useStore((s) => s.toggleLeftSidebar);
-    const toggleConfigPanel = useStore((s) => s.toggleConfigPanel);
-    const toggleFilterPanel = useStore((s) => s.toggleFilterPanel);
-    const filterCount = useStore((s) =>
-        Object.values(s.filters).reduce((sum, pf) => sum + Object.keys(pf).length, 0)
-    );
+    const [searchExpanded, setSearchExpanded] = useState(false);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -37,9 +34,7 @@ export function Header() {
         if (!el) return;
 
         const handleWheel = (e: WheelEvent) => {
-            // Check if there is a vertical scroll (e.deltaY)
             if (e.deltaY !== 0) {
-                // If so, translate it to horizontal scroll
                 e.preventDefault();
                 el.scrollLeft += e.deltaY;
             }
@@ -49,6 +44,45 @@ export function Header() {
         return () => el.removeEventListener("wheel", handleWheel);
     }, []);
 
+    // Mobile: condensed header with expandable search
+    if (isMobile) {
+        return (
+            <header className="header header--mobile glass-panel">
+                <div className="header__brand">
+                    <div className="header__logo">WorldWideView</div>
+                </div>
+
+                <div className="header__actions">
+                    {searchExpanded ? (
+                        <div className="header__search-expanded">
+                            <SearchBar />
+                            <button
+                                className="btn btn--icon"
+                                onClick={() => setSearchExpanded(false)}
+                                title="Close search"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            className="btn btn--icon header__search-btn"
+                            onClick={() => setSearchExpanded(true)}
+                            title="Search"
+                        >
+                            <Search size={18} />
+                        </button>
+                    )}
+                    <div className="status-badge">
+                        <span className="status-badge__dot" />
+                        LIVE
+                    </div>
+                </div>
+            </header>
+        );
+    }
+
+    // Desktop: full header
     return (
         <header className="header glass-panel">
             <div className="header__brand">
@@ -56,15 +90,12 @@ export function Header() {
                     <div className="header__logo">WorldWideView</div>
                     <div className="header__subtitle">Geospatial Intelligence</div>
                 </div>
-                {/* Search Bar moved here to prevent dropdown clipping */}
                 <div style={{ marginLeft: "var(--space-xl)" }}>
                     <SearchBar />
                 </div>
             </div>
             <div className="header__controls">
-                {/* Scrollable section: region presets + time windows */}
                 <div className="header__controls-scroll" ref={scrollContainerRef}>
-                    {/* Region presets */}
                     {REGIONS.map((r) => (
                         <button
                             key={r.id}
@@ -77,9 +108,7 @@ export function Header() {
                             {r.label}
                         </button>
                     ))}
-                    {/* Separator */}
                     <div style={{ width: 1, height: 20, background: "var(--border-subtle)", flexShrink: 0 }} />
-                    {/* Time windows */}
                     {TIME_WINDOWS.map((tw) => (
                         <button
                             key={tw}
@@ -95,11 +124,8 @@ export function Header() {
                         </button>
                     ))}
                 </div>
-                {/* Always-visible right-side actions */}
                 <div className="header__actions">
-                    {/* Separator */}
                     <div style={{ width: 1, height: 20, background: "var(--border-subtle)" }} />
-                    {/* Live indicator */}
                     <div className="status-badge">
                         <span className="status-badge__dot" />
                         LIVE
