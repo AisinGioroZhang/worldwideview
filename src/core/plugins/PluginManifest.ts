@@ -36,6 +36,8 @@ export interface DataSourceConfig {
     } | null;
     headers?: Record<string, string>;
     body?: Record<string, unknown>;
+    /** Dot-path to the array of items in a JSON response (e.g. "data.results") */
+    arrayPath?: string;
 }
 
 // ─── Field Mapping (Format: declarative) ─────────────────────
