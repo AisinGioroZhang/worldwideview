@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
 import { getHistoryAtTime } from "../../../../lib/aviation/repository";
+import { isHistoryEnabled } from "../../../../core/edition";
 
 export async function GET(request: Request) {
+    if (!isHistoryEnabled) {
+        return NextResponse.json(
+            { error: "History is not available on the demo edition. Use your own instance." },
+            { status: 403 },
+        );
+    }
+
     const { searchParams } = new URL(request.url);
     const timeParam = searchParams.get("time");
 
     if (!timeParam) {
         return NextResponse.json({ error: "Missing time parameter" }, { status: 400 });
     }
+
 
     const targetTimeMs = parseInt(timeParam);
     if (isNaN(targetTimeMs)) {

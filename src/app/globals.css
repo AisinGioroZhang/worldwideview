@@ -680,6 +680,39 @@ html, body {
   cursor: pointer;
 }
 
+/* ─── History unavailable (demo edition) ─────────────────── */
+.timeline__history-unavailable {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(245, 158, 11, 0.85);
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  user-select: none;
+}
+
+.timeline__history-unavailable-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.timeline__history-unavailable-link {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.4);
+  transition: color var(--duration-fast) var(--ease-smooth),
+              border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.timeline__history-unavailable-link:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+}
+
 .timeline__window-selector {
   display: flex;
   gap: var(--space-xs);
