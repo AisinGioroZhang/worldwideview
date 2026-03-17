@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-maritime
 
-[WorldWideView](https://github.com/silveittakana/worldwideview) plugin for **real-time vessel tracking** via AIS (Automatic Identification System) feeds.
+[WorldWideView](https://github.com/silvertakana/worldwideview) plugin for **real-time vessel tracking** via AIS (Automatic Identification System) feeds.
 
 ## Features
 

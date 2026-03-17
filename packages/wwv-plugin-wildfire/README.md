@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-wildfire
 
-[WorldWideView](https://github.com/silveittakana/worldwideview) plugin for **active wildfire and hotspot detection** using [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) (VIIRS) satellite data.
+[WorldWideView](https://github.com/silvertakana/worldwideview) plugin for **active wildfire and hotspot detection** using [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) (VIIRS) satellite data.
 
 ## Features
 

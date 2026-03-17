@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-borders
 
-[WorldWideView](https://github.com/silveittakana/worldwideview) plugin that displays **political borders and country labels** as a globe overlay.
+[WorldWideView](https://github.com/silvertakana/worldwideview) plugin that displays **political borders and country labels** as a globe overlay.
 
 ## Features
 

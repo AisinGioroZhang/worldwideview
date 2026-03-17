@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-aviation
 
-[WorldWideView](https://github.com/silveittakana/worldwideview) plugin for **real-time commercial aircraft tracking** via the [OpenSky Network](https://opensky-network.org/) API.
+[WorldWideView](https://github.com/silvertakana/worldwideview) plugin for **real-time commercial aircraft tracking** via the [OpenSky Network](https://opensky-network.org/) API.
 
 ## Features
 

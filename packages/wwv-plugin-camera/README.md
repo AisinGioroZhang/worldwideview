@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-camera
 
-[WorldWideView](https://github.com/silveittakana/worldwideview) plugin for displaying **public live cameras and traffic cameras** on the 3D globe.
+[WorldWideView](https://github.com/silvertakana/worldwideview) plugin for displaying **public live cameras and traffic cameras** on the 3D globe.
 
 ## Features
 

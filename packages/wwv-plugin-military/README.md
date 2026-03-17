@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-military
 
-[WorldWideView](https://github.com/silveittakana/worldwideview) plugin for **real-time military aircraft tracking** via [adsb.fi](https://adsb.fi/).
+[WorldWideView](https://github.com/silvertakana/worldwideview) plugin for **real-time military aircraft tracking** via [adsb.fi](https://adsb.fi/).
 
 ## Features
 

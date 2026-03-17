@@ -1,6 +1,6 @@
 # @worldwideview/wwv-plugin-sdk
 
-Plugin SDK for building [WorldWideView](https://github.com/silveittakana/worldwideview) globe plugins. Provides TypeScript types, interfaces, and utilities that all plugins depend on.
+Plugin SDK for building [WorldWideView](https://github.com/silvertakana/worldwideview) globe plugins. Provides TypeScript types, interfaces, and utilities that all plugins depend on.
 
 ## Installation
 
