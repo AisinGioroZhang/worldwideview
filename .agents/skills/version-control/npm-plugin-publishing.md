@@ -1,74 +1,163 @@
 ---
 name: npm-plugin-publishing
-description: Automated plugin publishing workflow for monorepo packages. Use when releasing a plugin to NPM via GitHub Actions.
+description: How to manage, version, publish, and operate the WorldWideView npm workspace packages. Covers monorepo structure, daily development, releasing, OIDC trusted publishing, and troubleshooting.
 ---
 
-# NPM Plugin Publishing Rules
+# NPM Plugin Package Management
 
-## Day-to-Day Release Command
+## Monorepo Structure
+
+```
+packages/
+├── wwv-plugin-sdk/           ← compiled types (dist/) — the public API
+├── wwv-plugin-aviation/      ← TypeScript source — published as src/
+├── wwv-plugin-maritime/
+├── wwv-plugin-wildfire/
+├── wwv-plugin-borders/
+├── wwv-plugin-camera/        ← 8 source files (5 components + frustum)
+└── wwv-plugin-military/
+```
+
+- **Scope:** `@worldwideview`
+- **Naming convention:** `wwv-plugin-<name>` (enforced for discovery)
+- **npm org:** `worldwideview` on npmjs.com
+- **Owner:** `silvertakana`
+
+---
+
+## Package Registry URLs
+
+| Package | npm URL |
+|---|---|
+| SDK | https://www.npmjs.com/package/@worldwideview/wwv-plugin-sdk |
+| Aviation | https://www.npmjs.com/package/@worldwideview/wwv-plugin-aviation |
+| Maritime | https://www.npmjs.com/package/@worldwideview/wwv-plugin-maritime |
+| Wildfire | https://www.npmjs.com/package/@worldwideview/wwv-plugin-wildfire |
+| Borders | https://www.npmjs.com/package/@worldwideview/wwv-plugin-borders |
+| Camera | https://www.npmjs.com/package/@worldwideview/wwv-plugin-camera |
+| Military | https://www.npmjs.com/package/@worldwideview/wwv-plugin-military |
+
+---
+
+## Daily Development
+
+Plugins are workspace packages, so `npm install` creates symlinks automatically:
 
 ```bash
-# Bug fix in a plugin
-npm version patch -w packages/plugin-aviation
-git push && git push --tags
-
-# New feature in a plugin
-npm version minor -w packages/plugin-maritime
-git push && git push --tags
+cd c:\dev\worldwideview
+npm install  # resolves all workspace symlinks
 ```
 
-This creates a scoped tag like `plugin-aviation-v1.0.1` which triggers the GitHub Action.
-
-**Never run `npm publish` manually** — tags trigger CI/CD automatically.
+Changes to any plugin in `packages/*/src/` are immediately reflected in the
+main app — no build or reinstall step needed during development.
 
 ---
 
-## Automated Flow
+## Releasing a Plugin
+
+### Bug fix (patch)
+
+```bash
+npm version patch -w packages/wwv-plugin-aviation
+git push && git push --tags
+```
+
+### New feature (minor)
+
+```bash
+npm version minor -w packages/wwv-plugin-maritime
+git push && git push --tags
+```
+
+### Breaking change (major)
+
+```bash
+npm version major -w packages/wwv-plugin-sdk
+git push && git push --tags
+```
+
+This creates a Git tag like `wwv-plugin-aviation-v1.0.1` which triggers
+the GitHub Action at `.github/workflows/publish-plugin.yml`.
+
+---
+
+## CI/CD Publishing Flow
 
 ```
-Code changes → commit & push to main
-  → npm version patch -w packages/<plugin>
+Code changes → commit & push
+  → npm version <patch|minor|major> -w packages/<plugin>
   → git push --tags
-  → GitHub Action triggers on tag pattern: plugin-*-v*
-  → Builds package → publishes to NPM 🎉
+  → GitHub Action triggered by tag: wwv-plugin-*-v*
+  → OIDC auth → publish to npm (no stored token needed)
 ```
 
----
+### GitHub Action (`.github/workflows/publish-plugin.yml`)
 
-## GitHub Action (`publish.yml`)
+Uses **OIDC Trusted Publishing** — no `NPM_TOKEN` secret required.
+Each package must have a Trusted Publisher configured in npm settings.
 
 ```yaml
-name: Publish Plugin to NPM
-on:
-  push:
-    tags:
-      - "plugin-*-v*"
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: "https://registry.npmjs.org"
-      - run: npm ci
-      - name: Detect package
-        id: pkg
-        run: |
-          TAG="${{ github.ref_name }}"
-          PKG=$(echo "$TAG" | sed 's/-v[0-9].*//')
-          echo "package=$PKG" >> $GITHUB_OUTPUT
-      - run: npm run build -w packages/${{ steps.pkg.outputs.package }}
-      - run: npm publish packages/${{ steps.pkg.outputs.package }} --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+permissions:
+  contents: read
+  id-token: write  # OIDC
+```
+
+Publishes with `--provenance` flag for supply chain attestation.
+
+---
+
+## Trusted Publishing Setup (per-package, one-time)
+
+1. Go to `https://www.npmjs.com/package/@worldwideview/wwv-plugin-<name>/access`
+2. Find **Trusted Publisher** section
+3. Click **GitHub Actions** button
+4. Fill in:
+   - Repository owner: `silvertakana`
+   - Repository name: `worldwideview`
+   - Workflow: `.github/workflows/publish-plugin.yml`
+
+Repeat for each package. Only needs to be done once per package.
+
+---
+
+## Manual Publishing (emergency / first-time)
+
+Only needed if OIDC is not configured or for the very first publish:
+
+```bash
+# Must be logged in: npm login
+# Requires 2FA or a granular token with "bypass 2FA" checked
+npm publish --workspace=packages/wwv-plugin-sdk --access public
 ```
 
 ---
 
-## One-Time Setup
+## Key Files
 
-1. **NPM Token** — npmjs.com → Access Tokens → Generate (Automation type)
-2. **GitHub Secret** — Repo → Settings → Secrets → Actions → `NPM_TOKEN`
-3. **NPM Org** — Create `@worldwideview` org on npmjs.com for scoped packages
+| File | Purpose |
+|---|---|
+| `package.json` (root) | `workspaces: ["packages/*"]` + all plugin deps |
+| `tsconfig.json` (root) | `@worldwideview/*` path aliases |
+| `packages/*/package.json` | Per-package name, version, files, peerDeps |
+| `packages/*/tsconfig.json` | Extends root tsconfig (dev-time type checking) |
+| `.github/workflows/publish-plugin.yml` | Automated OIDC publish on tag push |
+
+---
+
+## Troubleshooting
+
+**"Cannot find module '@worldwideview/...'"**
+→ Run `npm install` to restore workspace symlinks
+
+**"403 Two-factor authentication required"**
+→ Use `--otp=<code>` or create a granular token with "Bypass 2FA" checked
+
+**"404 Not Found" on publish**
+→ The `@worldwideview` npm org must exist and your account must be a member
+
+**IDE shows "Cannot find module ./CameraDetail"**
+→ Stale TypeScript server cache. Restart TS server or IDE.
+
+**Tests reference old `src/plugins/` paths**
+→ All plugins now live under `packages/`. The `src/plugins/geojson/` is the
+only plugin that stays in-app (it's an app feature, not a publishable plugin).
