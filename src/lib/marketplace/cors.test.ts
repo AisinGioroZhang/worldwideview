@@ -16,13 +16,13 @@ describe("CORS utility", () => {
         });
 
         it("returns production origin when matched", () => {
-            const headers = corsHeaders(fakeRequest("https://marketplace.worldwideview.io"));
-            expect(headers["Access-Control-Allow-Origin"]).toBe("https://marketplace.worldwideview.io");
+            const headers = corsHeaders(fakeRequest("https://marketplace.worldwideview.dev"));
+            expect(headers["Access-Control-Allow-Origin"]).toBe("https://marketplace.worldwideview.dev");
         });
 
-        it("falls back to first allowed origin for unknown origins", () => {
+        it("returns no CORS headers for unknown origins", () => {
             const headers = corsHeaders(fakeRequest("http://evil.com"));
-            expect(headers["Access-Control-Allow-Origin"]).toBe("http://localhost:3001");
+            expect(headers["Access-Control-Allow-Origin"]).toBeUndefined();
         });
 
         it("includes required methods and headers", () => {

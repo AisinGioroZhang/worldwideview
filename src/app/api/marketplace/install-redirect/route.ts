@@ -9,15 +9,14 @@ import { validateManifest } from "@/core/plugins/validateManifest";
 const ALLOWED_REDIRECT_HOSTS = new Set([
     "localhost",
     "127.0.0.1",
-    "worldwideview.io",
-    "worldwideview.cloud",
+    "worldwideview.dev",
 ]);
 
 function isSafeRedirect(url: string): boolean {
     try {
         const parsed = new URL(url);
         const hostname = parsed.hostname;
-        return ALLOWED_REDIRECT_HOSTS.has(hostname) || hostname.endsWith(".worldwideview.io");
+        return ALLOWED_REDIRECT_HOSTS.has(hostname) || hostname.endsWith(".worldwideview.dev");
     } catch {
         return false;
     }

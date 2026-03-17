@@ -33,14 +33,14 @@ describe("marketplaceToken", () => {
 
         it("throws on a token signed with a different secret", async () => {
             const token = await issueMarketplaceToken();
-            process.env.NEXTAUTH_SECRET = "a-completely-different-secret-here!";
+            process.env.AUTH_SECRET = "a-completely-different-secret-here!!";
             await expect(verifyMarketplaceToken(token)).rejects.toThrow();
         });
 
         it("throws on a token with wrong scope", async () => {
             // Manually craft a token with wrong scope using the same secret
             const { SignJWT } = await import("jose");
-            const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+            const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
             const wrongScopeToken = await new SignJWT({ scope: "admin" })
                 .setProtectedHeader({ alg: "HS256" })
                 .setIssuedAt()

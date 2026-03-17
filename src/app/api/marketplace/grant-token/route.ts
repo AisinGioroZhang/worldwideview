@@ -6,8 +6,7 @@ import { issueMarketplaceToken } from "@/lib/marketplace/marketplaceToken";
 const ALLOWED_REDIRECT_HOSTS = new Set([
     "localhost",
     "127.0.0.1",
-    "worldwideview.io",
-    "worldwideview.cloud",
+    "worldwideview.dev",
 ]);
 
 function isSafeRedirect(url: string): boolean {
@@ -15,7 +14,7 @@ function isSafeRedirect(url: string): boolean {
         const parsed = new URL(url);
         return (
             ALLOWED_REDIRECT_HOSTS.has(parsed.hostname) ||
-            parsed.hostname.endsWith(".worldwideview.io")
+            parsed.hostname.endsWith(".worldwideview.dev")
         );
     } catch {
         return false;
