@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { issueMarketplaceToken } from "@/lib/marketplace/marketplaceToken";
+import { grantTokenLimiter } from "@/lib/rateLimiters";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ALLOWED_REDIRECT_HOSTS = new Set([
     "localhost",
@@ -30,6 +32,9 @@ function isSafeRedirect(url: string): boolean {
  *   redirectTo - URL to redirect to with ?token=<jwt> appended (must be allowlisted)
  */
 export async function GET(request: NextRequest) {
+    const rateLimited = grantTokenLimiter.check(getClientIp(request));
+    if (rateLimited) return rateLimited;
+
     const { searchParams } = request.nextUrl;
     const redirectTo = searchParams.get("redirectTo") ?? "";
 

@@ -23,6 +23,18 @@ export const installLimiter = new RateLimiter({
     maxRequests: 10,
 });
 
+/** /api/marketplace/grant-token — prevents JWT generation spam. */
+export const grantTokenLimiter = new RateLimiter({
+    windowMs: 60_000,
+    maxRequests: 5,
+});
+
+/** /api/marketplace/status, install, uninstall — general marketplace API. */
+export const marketplaceApiLimiter = new RateLimiter({
+    windowMs: 60_000,
+    maxRequests: 20,
+});
+
 /** /api/auth/[...nextauth] — prevents credential brute-force. */
 export const authLimiter = new RateLimiter({
     windowMs: 60_000,

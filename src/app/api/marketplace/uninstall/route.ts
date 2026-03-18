@@ -3,6 +3,8 @@ import { validateMarketplaceAuth } from "@/lib/marketplace/auth";
 import { uninstallPlugin, disableBuiltinPlugin } from "@/lib/marketplace/repository";
 import { handlePreflight, withCors } from "@/lib/marketplace/cors";
 import { BUILT_IN_PLUGIN_IDS } from "@/lib/marketplace/builtinPlugins";
+import { marketplaceApiLimiter } from "@/lib/rateLimiters";
+import { getClientIp } from "@/lib/rateLimit";
 
 export async function OPTIONS(request: Request) {
     return handlePreflight(request);
@@ -11,6 +13,9 @@ export async function OPTIONS(request: Request) {
 const builtInSet = new Set<string>(BUILT_IN_PLUGIN_IDS);
 
 export async function POST(request: Request) {
+    const rateLimited = marketplaceApiLimiter.check(getClientIp(request));
+    if (rateLimited) return withCors(rateLimited, request);
+
     const authError = await validateMarketplaceAuth(request);
     if (authError) return withCors(authError, request);
 

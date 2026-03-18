@@ -3,12 +3,17 @@ import { validateMarketplaceAuth } from "@/lib/marketplace/auth";
 import { upsertPlugin } from "@/lib/marketplace/repository";
 import { handlePreflight, withCors } from "@/lib/marketplace/cors";
 import { validateManifest } from "@/core/plugins/validateManifest";
+import { marketplaceApiLimiter } from "@/lib/rateLimiters";
+import { getClientIp } from "@/lib/rateLimit";
 
 export async function OPTIONS(request: Request) {
     return handlePreflight(request);
 }
 
 export async function POST(request: Request) {
+    const rateLimited = marketplaceApiLimiter.check(getClientIp(request));
+    if (rateLimited) return withCors(rateLimited, request);
+
     const authError = await validateMarketplaceAuth(request);
     if (authError) return withCors(authError, request);
 
