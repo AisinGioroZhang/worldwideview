@@ -6,6 +6,7 @@ import { validateManifest } from "@/core/plugins/validateManifest";
 import { marketplaceApiLimiter } from "@/lib/rateLimiters";
 import { getClientIp } from "@/lib/rateLimit";
 import { isPluginInstallEnabled } from "@/core/edition";
+import { getVerifiedPluginIds } from "@/lib/marketplace/registryClient";
 
 export async function OPTIONS(request: Request) {
     return handlePreflight(request);
@@ -51,6 +52,12 @@ export async function POST(request: Request) {
                     request,
                 );
             }
+        }
+
+        // Server-side trust stamping
+        if (manifest) {
+            const verified = await getVerifiedPluginIds();
+            manifest.trust = verified.has(pluginId) ? "verified" : "unverified";
         }
 
         const config = manifest ? JSON.stringify(manifest) : "{}";

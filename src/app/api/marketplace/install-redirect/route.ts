@@ -8,6 +8,7 @@ import { validateManifest } from "@/core/plugins/validateManifest";
 import { installLimiter } from "@/lib/rateLimiters";
 import { getClientIp } from "@/lib/rateLimit";
 import { isPluginInstallEnabled } from "@/core/edition";
+import { getVerifiedPluginIds } from "@/lib/marketplace/registryClient";
 
 const ALLOWED_REDIRECT_HOSTS = new Set([
     "localhost",
@@ -80,6 +81,10 @@ export async function GET(request: NextRequest) {
                 { status: 400 },
             );
         }
+
+        // Server-side trust stamping — never trust the incoming manifest's claim
+        const verified = await getVerifiedPluginIds();
+        manifest.trust = verified.has(pluginId) ? "verified" : "unverified";
 
         try {
             await upsertPlugin(pluginId, version, JSON.stringify(manifest));
