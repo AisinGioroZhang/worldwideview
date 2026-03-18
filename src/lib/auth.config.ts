@@ -11,9 +11,6 @@ export const authConfig: NextAuthConfig = {
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
-            // Demo edition: no auth required anywhere
-            if (isDemo) return true;
-
             const isLoggedIn = !!auth?.user;
             const isSetup = nextUrl.pathname.startsWith("/setup");
             const isLogin = nextUrl.pathname.startsWith("/login");
@@ -24,6 +21,9 @@ export const authConfig: NextAuthConfig = {
 
             // Setup/login pages: always accessible
             if (isSetup || isLogin) return true;
+
+            // Demo edition: all pages accessible (no login required)
+            if (isDemo) return true;
 
             // Everything else requires login
             return isLoggedIn;
