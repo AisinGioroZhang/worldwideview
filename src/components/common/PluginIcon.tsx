@@ -1,17 +1,9 @@
 "use client";
 
 import type { ComponentType } from "react";
-import type { LucideIcon } from "lucide-react";
-import {
-  MapPin, Plane, Ship, Shield, Flame, Camera, Map, Swords,
-  Wrench, Atom, Landmark, Package,
-} from "lucide-react";
+import { icons, type LucideIcon } from "lucide-react";
 
-/** Map of lucide icon name strings → React components. */
-const ICON_MAP: Record<string, LucideIcon> = {
-  MapPin, Plane, Ship, Shield, Flame, Camera, Map, Swords,
-  Wrench, Atom, Landmark, Package,
-};
+const FallbackIcon = icons.Package;
 
 interface PluginIconProps {
     icon: string | ComponentType<{ size?: number; color?: string }>;
@@ -21,13 +13,15 @@ interface PluginIconProps {
 
 /**
  * Renders a plugin icon consistently across the app.
- * Handles lucide icon name strings, emoji strings, and
- * React component icons (e.g. lucide-react components).
+ * Resolves any valid lucide-react icon name string dynamically,
+ * so new plugins can use any icon without updating this component.
+ * Also supports emoji strings and React component icons.
  */
 export function PluginIcon({ icon, size = 18, color }: PluginIconProps) {
     if (typeof icon === "string") {
-        const Mapped = ICON_MAP[icon];
-        if (Mapped) return <Mapped size={size} color={color} />;
+        const Resolved = icons[icon as keyof typeof icons] as LucideIcon | undefined;
+        if (Resolved) return <Resolved size={size} color={color} />;
+        // Treat as emoji or text fallback
         return <span>{icon}</span>;
     }
 
@@ -36,5 +30,5 @@ export function PluginIcon({ icon, size = 18, color }: PluginIconProps) {
         return <IconComponent size={size} color={color} />;
     }
 
-    return <MapPin size={size} />;
+    return <FallbackIcon size={size} />;
 }
