@@ -17,8 +17,14 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "font-src 'self' fonts.gstatic.com",
-              "img-src 'self' data: blob: *.tile.openstreetmap.org *.arcgisonline.com *.virtualearth.net *.bing.com *.googleapis.com",
-              "connect-src 'self' *.supabase.co *.worldwideview.dev *.cesium.com *.arcgisonline.com *.virtualearth.net *.googleapis.com *.vercel-scripts.com",
+              // Camera streams load images/MJPEG from arbitrary IPs worldwide — http: https: required
+              "img-src 'self' data: blob: http: https:",
+              // Camera HLS streams and external data fetches need arbitrary origins
+              "connect-src 'self' http: https:",
+              // HLS video streams from arbitrary camera sources
+              "media-src 'self' blob: http: https:",
+              // Embeddable video platforms for camera iframes
+              "frame-src 'self' *.youtube.com *.youtube-nocookie.com *.twitch.tv *.vimeo.com *.webcamera.pl *.ivideon.com *.rtsp.me *.bnu.tv",
               "worker-src 'self' blob:",
               "frame-ancestors 'none'",
             ].join("; "),
