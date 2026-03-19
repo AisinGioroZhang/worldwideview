@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { corsHeaders, handlePreflight } from "@/lib/marketplace/cors";
-import { edition, isPluginInstallEnabled } from "@/core/edition";
+import { edition, isDemo, isPluginInstallEnabled } from "@/core/edition";
 
 /** Lightweight endpoint for middleware to check if first-run setup is needed. */
 export async function OPTIONS(request: Request) {
@@ -10,9 +10,10 @@ export async function OPTIONS(request: Request) {
 
 export async function GET(request: Request) {
     try {
-        const count = await prisma.user.count();
+        // Demo edition skips the DB query — it's pre-configured, no setup needed.
+        const needsSetup = isDemo ? false : (await prisma.user.count()) === 0;
         const res = NextResponse.json({
-            needsSetup: count === 0,
+            needsSetup,
             edition,
             pluginManagementEnabled: isPluginInstallEnabled,
         });

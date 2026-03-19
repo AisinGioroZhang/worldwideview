@@ -22,6 +22,10 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV DATABASE_URL=file:./data/wwv.db
+ENV AUTH_TRUST_HOST=true
+
+# Create data directory for SQLite database
+RUN mkdir -p ./data
 
 # Copy Prisma schema, migrations, config, and generated client for runtime
 COPY --from=builder /app/prisma ./prisma
