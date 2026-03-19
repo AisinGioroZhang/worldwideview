@@ -11,6 +11,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
+
+# Create an empty SQLite database with all tables applied
+RUN mkdir -p ./data && DATABASE_URL=file:./data/wwv.db npx prisma migrate deploy
+
 RUN npm run build
 RUN node scripts/copy-cesium.mjs
 
@@ -24,17 +28,12 @@ ENV PORT=3000
 ENV DATABASE_URL=file:./data/wwv.db
 ENV AUTH_TRUST_HOST=true
 
-# Create data directory for SQLite database
-RUN mkdir -p ./data
+# Copy pre-initialized SQLite database (tables already created)
+COPY --from=builder /app/data ./data
 
-# Copy Prisma schema, migrations, config, and generated client for runtime
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/package.json ./package.json
+# Copy Prisma generated client for runtime
 COPY --from=builder /app/src/generated ./src/generated
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/dotenv ./node_modules/dotenv
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 
 # Copy standalone server output
@@ -44,11 +43,6 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Copy entrypoint script
-COPY docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
-
 EXPOSE 3000
 
-CMD ["./docker-entrypoint.sh"]
-
+CMD ["node", "server.js"]
