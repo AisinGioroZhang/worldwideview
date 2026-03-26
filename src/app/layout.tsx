@@ -14,9 +14,6 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "WorldWideView | Geospatial Intelligence",
   description: "Next-generation, open-source geospatial intelligence platform.",
-  icons: {
-    icon: "/favicon.svg",
-  },
 };
 
 export default function RootLayout({
