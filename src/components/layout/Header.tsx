@@ -60,7 +60,10 @@ export function Header() {
         return (
             <header className="header header--mobile glass-panel">
                 <div className="header__brand">
-                    <div className="header__logo header__logo--compact">WWV</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <img src="/logo/logo-icon.svg" alt="Logo" style={{ width: 20, height: 20, objectFit: "contain" }} />
+                        <div className="header__logo header__logo--compact">WORLD WIDE VIEW</div>
+                    </div>
                     <span className="alpha-badge">ALPHA</span>
                     {isDemoAdmin && <span className="alpha-badge" style={{ background: "var(--accent-orange, #f59e0b)" }}>ADMIN</span>}
                 </div>
@@ -85,8 +88,9 @@ export function Header() {
         <header className="header glass-panel">
             <div className="header__brand">
                 <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <div className="header__logo">WorldWideView</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <img src="/logo/logo-icon.svg" alt="Logo" style={{ width: 22, height: 22, objectFit: "contain" }} />
+                        <div className="header__logo">WORLD WIDE VIEW</div>
                         <span className="alpha-badge">ALPHA</span>
                         {isDemoAdmin && <span className="alpha-badge" style={{ background: "var(--accent-orange, #f59e0b)" }}>ADMIN</span>}
                     </div>
