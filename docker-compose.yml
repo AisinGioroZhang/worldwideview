@@ -5,7 +5,9 @@ services:
       - "3000:3000"
     volumes:
       - wwv-data:/app/data
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       - AUTH_SECRET=${AUTH_SECRET:?AUTH_SECRET is required — generate with: openssl rand -hex 32}
       - WWV_DEMO_ADMIN_SECRET=${WWV_DEMO_ADMIN_SECRET:-}
