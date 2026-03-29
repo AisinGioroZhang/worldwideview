@@ -1,19 +1,22 @@
 # Stage 1: Install ALL dependencies (needed for build)
 FROM node:22-alpine AS deps
+RUN corepack enable pnpm
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm i --frozen-lockfile
 
 # Stage 2: Install PRODUCTION-ONLY dependencies (for runtime)
 FROM node:22-alpine AS proddeps
+RUN corepack enable pnpm
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm i --prod --frozen-lockfile
 
 # Stage 3: Build the application
 FROM node:22-alpine AS builder
+RUN corepack enable pnpm
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -22,7 +25,7 @@ RUN npx prisma generate
 # Create an empty SQLite database with all tables applied
 RUN mkdir -p ./data && DATABASE_URL=file:./data/wwv.db npx prisma migrate deploy
 
-RUN npm run build
+RUN pnpm run build
 RUN node scripts/copy-cesium.mjs
 
 # Stage 4: Production runner
