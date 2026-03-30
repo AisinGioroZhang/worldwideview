@@ -68,23 +68,25 @@ export function DataConfigPanel() {
                 </button>
             </div>
 
-            {activeTab === "intel" && (
-                <div style={{ marginBottom: "var(--space-lg)" }}>
-                    <div style={sectionHeaderStyle}>Intelligence</div>
-                    <IntelTab />
-                </div>
-            )}
+            <div style={{ flex: 1, overflowY: "auto", minHeight: 0, display: "flex", flexDirection: "column", paddingRight: "var(--space-xs)" }}>
+                {activeTab === "intel" && (
+                    <div style={{ marginBottom: "var(--space-lg)" }}>
+                        <div style={sectionHeaderStyle}>Intelligence</div>
+                        <IntelTab />
+                    </div>
+                )}
 
-            {activeTab === "filters" && (
-                <div style={{ marginBottom: "var(--space-lg)" }}>
-                    <div style={sectionHeaderStyle}>Entity Filters</div>
-                    <FilterSection />
-                </div>
-            )}
+                {activeTab === "filters" && (
+                    <div style={{ marginBottom: "var(--space-lg)" }}>
+                        <div style={sectionHeaderStyle}>Entity Filters</div>
+                        <FilterSection />
+                    </div>
+                )}
 
-            {activeTab === "cache" && <CacheTab />}
-            {activeTab === "overlay" && <OverlayTab />}
-            {activeTab === "apikeys" && <ApiKeysTab />}
+                {activeTab === "cache" && <CacheTab />}
+                {activeTab === "overlay" && <OverlayTab />}
+                {activeTab === "apikeys" && <ApiKeysTab />}
+            </div>
         </aside>
     );
 }
