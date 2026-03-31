@@ -34,13 +34,17 @@ export const FloatingVideoManager: React.FC = () => {
                     onClose={() => removeFloatingStream(stream.id)}
                     onUpdate={(updates) => updateFloatingStream(stream.id, updates)}
                 >
-                    <div style={{ width: "100%", height: "100%", backgroundColor: "black" }}>
-                        <CameraStream
-                            streamUrl={stream.streamUrl}
-                            isIframe={stream.isIframe}
-                            label={stream.label}
-                            className="h-full w-full"
-                        />
+                    <div style={{ width: "100%", height: "100%", backgroundColor: stream.type === "image" ? "rgba(0,0,0,0.8)" : "black" }}>
+                        {stream.type === "image" ? (
+                            <img src={stream.streamUrl} alt={stream.label} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                        ) : (
+                            <CameraStream
+                                streamUrl={stream.streamUrl}
+                                isIframe={stream.isIframe ?? false}
+                                label={stream.label}
+                                className="h-full w-full"
+                            />
+                        )}
                     </div>
                 </FloatingWindow>
             ))}

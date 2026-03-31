@@ -1,7 +1,7 @@
 import { useStore } from "@/core/state/store";
 import { pluginManager } from "@/core/plugins/PluginManager";
 import { PluginIcon } from "@/components/common/PluginIcon";
-import { Eye, MapPin, Lock, Unlock, Star } from "lucide-react";
+import { Eye, MapPin, Lock, Unlock, Star, ExternalLink, Maximize2 } from "lucide-react";
 import { dataBus } from "@/core/data/DataBus";
 import { sectionHeaderStyle } from "./sharedStyles";
 
@@ -15,6 +15,7 @@ export function IntelTab() {
     const highlightLayerId = useStore((s) => s.highlightLayerId);
     const filters = useStore((s) => s.filters);
     const setFilter = useStore((s) => s.setFilter);
+    const addFloatingStream = useStore((s) => s.addFloatingStream);
 
     if (!selectedEntity) {
         if (highlightLayerId) {
@@ -194,18 +195,86 @@ export function IntelTab() {
                     </div>
                 ) : (
                     <>
-                        {displayProps.map(([key, value]) => (
-                            <div key={key} className="intel-panel__prop">
-                                <span className="intel-panel__prop-key">
-                                    {key.replace(/_/g, " ")}
-                                </span>
-                                <span className="intel-panel__prop-value">
-                                    {typeof value === "boolean"
-                                        ? value ? "Yes" : "No"
-                                        : String(value)}
-                                </span>
-                            </div>
-                        ))}
+                        {displayProps.map(([key, value]) => {
+                            const isImage = typeof value === "string" && key.toLowerCase().includes("image") && /^https?:\/\//i.test(value);
+                            const isUrl = !isImage && typeof value === "string" && /^https?:\/\//i.test(value);
+                            const isLongText = typeof value === "string" && value.length > 50;
+
+                            if (isImage) {
+                                return (
+                                    <div key={key} style={{ marginTop: "var(--space-md)", paddingTop: "var(--space-sm)", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                            <span className="intel-panel__prop-key" style={{ margin: 0 }}>
+                                                {key.replace(/_/g, " ")}
+                                            </span>
+                                            <button 
+                                                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}
+                                                onClick={() => addFloatingStream({
+                                                    id: `image_${selectedEntity.id}_${key}`,
+                                                    streamUrl: value as string,
+                                                    isIframe: false,
+                                                    label: `${selectedEntity.label || selectedEntity.id} - ${key.replace(/_/g, " ")}`,
+                                                    type: "image"
+                                                })}
+                                                title="Popout Image"
+                                                onMouseEnter={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+                                                onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-muted)"}
+                                            >
+                                                <Maximize2 size={14} />
+                                            </button>
+                                        </div>
+                                        <div style={{ borderRadius: "var(--radius-md)", overflow: "hidden", background: "rgba(0,0,0,0.2)", display: "flex", justifyContent: "center" }}>
+                                            <img src={value as string} alt={key} style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            if (isLongText || isUrl) {
+                                return (
+                                    <div key={key} style={{ display: "flex", flexDirection: "column", marginTop: "var(--space-md)", paddingTop: "var(--space-sm)", borderTop: "1px solid rgba(255,255,255,0.05)", minWidth: 0 }}>
+                                        <span className="intel-panel__prop-key" style={{ marginBottom: 6 }}>
+                                            {key.replace(/_/g, " ")}
+                                        </span>
+                                        {isUrl ? (
+                                            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", width: "100%" }}>
+                                                <div 
+                                                    style={{ 
+                                                        flex: 1, 
+                                                        overflowX: "auto", 
+                                                        whiteSpace: "nowrap",
+                                                        fontSize: 13,
+                                                        fontFamily: "var(--font-mono)",
+                                                        color: "var(--text-primary)",
+                                                        paddingBottom: 2
+                                                    }}
+                                                >
+                                                    {String(value)}
+                                                </div>
+                                                <a href={value as string} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-cyan)", display: "flex", flexShrink: 0 }} title="Open Link">
+                                                    <ExternalLink size={14} />
+                                                </a>
+                                            </div>
+                                        ) : (
+                                            <span className="intel-panel__prop-value" style={{ textAlign: "left", lineHeight: 1.5, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+                                                {String(value)}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div key={key} className="intel-panel__prop">
+                                    <span className="intel-panel__prop-key">
+                                        {key.replace(/_/g, " ")}
+                                    </span>
+                                    <span className="intel-panel__prop-value">
+                                        {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </>
                 )}
             </div>

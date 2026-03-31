@@ -11,6 +11,7 @@ export interface FloatingStream {
     position: { x: number; y: number };
     size: { width: number; height: number };
     isMinimized?: boolean;
+    type?: "video" | "image";
 }
 
 export interface UISlice {
