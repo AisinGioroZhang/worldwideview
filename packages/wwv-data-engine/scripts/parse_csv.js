@@ -40,7 +40,7 @@ for(const line of lines) {
   });
 }
 
-const outDir = 'C:/dev/worldwideview/packages/wwv-data-engine/data/fallback';
+const outDir = 'C:/dev/worldwideview/packages/wwv-data-engine/seedData';
 if (!fs.existsSync(outDir)) {
   fs.mkdirSync(outDir, { recursive: true });
 }
