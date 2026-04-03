@@ -21,10 +21,10 @@ function typeToIcon(type: string) {
     }
 }
 
-export class IranWarStrikesPlugin implements WorldPlugin {
+export class IranWarLivePlugin implements WorldPlugin {
     id = "iranwarlive";
-    name = "Iran War Strikes";
-    description = "Live OSINT strike tracking — Data sourced from IranWarLive.com (Not for Life-Safety)";
+    name = "Iran War Live";
+    description = "Live OSINT tracking — Data sourced from IranWarLive.com (Not for Life-Safety)";
     icon = ShieldAlert;
     category = "conflict" as const;
     version = "1.0.0";
@@ -68,7 +68,7 @@ export class IranWarStrikesPlugin implements WorldPlugin {
                 };
             });
         } catch (err) {
-            console.error("[IranWarStrikesPlugin] Fetch error from microservice backend:", err);
+            console.error("[IranWarLivePlugin] Fetch error from microservice backend:", err);
             return [];
         }
     }

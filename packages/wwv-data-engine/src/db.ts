@@ -110,5 +110,35 @@ export function initDB() {
     CREATE INDEX IF NOT EXISTS idx_military_aviation_history_hex_ts ON military_aviation_history(hex, ts);
   `);
 
+  // GPS Jamming daily interference map
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS gps_jamming (
+      id TEXT PRIMARY KEY,
+      payload JSON NOT NULL,
+      source_ts INTEGER NOT NULL,
+      fetched_at INTEGER NOT NULL
+    )
+  `);
+
+  // Conflict Events (ACLED) DB table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS conflict_events (
+      id TEXT PRIMARY KEY,
+      payload JSON NOT NULL,
+      source_ts INTEGER NOT NULL,
+      fetched_at INTEGER NOT NULL
+    )
+  `);
+
+  // Civil Unrest DB table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS civil_unrest (
+      id TEXT PRIMARY KEY,
+      payload JSON NOT NULL,
+      source_ts INTEGER NOT NULL,
+      fetched_at INTEGER NOT NULL
+    )
+  `);
+
   console.log('[DB] All tables initialized successfully.');
 }

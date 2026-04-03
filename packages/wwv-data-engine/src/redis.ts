@@ -8,6 +8,11 @@ dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
 // ioredis gracefully handles standard redis:// as well as rediss:// (TLS, used by Upstash)
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
+if (redisUrl.includes('upstash.io') && redisUrl.startsWith('redis://')) {
+  console.error('\n\x1b[31m[CRITICAL CONFIG ERROR]\x1b[0m 🚨 You are connecting to Upstash without TLS.');
+  console.error('Upstash requires the rediss:// protocol. Please update your REDIS_URL in .env.local to start with rediss:// instead of redis://\n');
+}
+
 console.log(`[Redis] Connecting to ${redisUrl.replace(/:[^:@]+@/, ':***@')} ...`);
 
 export const redis = new Redis(redisUrl, {

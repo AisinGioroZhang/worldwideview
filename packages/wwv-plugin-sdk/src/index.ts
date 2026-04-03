@@ -73,6 +73,7 @@ export type PluginCategory =
     | "infrastructure"
     | "cyber"
     | "economic"
+    | "intelligence"
     | "custom";
 
 // ─── Time ────────────────────────────────────────────────────
@@ -225,8 +226,13 @@ export interface WorldPlugin {
     getSidebarComponent?(): ComponentType;
     getDetailComponent?(): ComponentType<{ entity: GeoEntity }>;
     getSettingsComponent?(): ComponentType<{ pluginId: string }>;
+    /** Custom React component injected into the Globe view for rendering primitives/data sources (e.g. GeoJSON). */
+    getGlobeComponent?(): ComponentType<{ viewer: any; enabled: boolean }>;
     requiresConfiguration?(settings: unknown): boolean;
 }
+
+// ─── Aliases for backwards compatibility ─────────────────────
+export type GlobePlugin = WorldPlugin;
 
 // ─── Data Bus Event Types ────────────────────────────────────
 export type DataBusEvents = {

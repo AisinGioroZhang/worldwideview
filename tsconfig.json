@@ -52,6 +52,18 @@
       ],
       "@worldwideview/wwv-plugin-satellite": [
         "./packages/wwv-plugin-satellite/src"
+      ],
+      "@worldwideview/wwv-plugin-daynight": [
+        "./packages/wwv-plugin-daynight/src"
+      ],
+      "@worldwideview/wwv-plugin-earthquakes": [
+        "./packages/wwv-plugin-earthquakes/src"
+      ],
+      "@worldwideview/wwv-plugin-iranwarlive": [
+        "./packages/wwv-plugin-iranwarlive/src"
+      ],
+      "@worldwideview/wwv-plugin-undersea-cables": [
+        "./packages/wwv-plugin-undersea-cables/src"
       ]
     }
   },

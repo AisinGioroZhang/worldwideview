@@ -62,7 +62,9 @@ export default function GlobeView() {
     const antiAliasing = useStore((s) => s.mapConfig.antiAliasing);
     const maxScreenSpaceError = useStore((s) => s.mapConfig.maxScreenSpaceError);
     const shadowsEnabled = useStore((s) => s.mapConfig.shadowsEnabled);
-    const enableLighting = useStore((s) => s.mapConfig.enableLighting);
+    const enableLightingConfig = useStore((s) => s.mapConfig.enableLighting);
+    const dayNightLayerEnabled = layers["daynight"]?.enabled ?? false;
+    const enableLighting = enableLightingConfig || dayNightLayerEnabled;
     const sceneSettings = useMemo(() => ({
         showFps, resolutionScale, antiAliasing, maxScreenSpaceError,
         shadowsEnabled, enableLighting,
@@ -280,6 +282,17 @@ export default function GlobeView() {
         }
     }, [lockedEntityId, viewerReady]);
 
+    // Inject custom globe components from plugins
+    const PluginGlobeComponents = useMemo(() => {
+        return pluginManager.getAllPlugins()
+            .filter(managed => managed.plugin.getGlobeComponent)
+            .map(managed => {
+                const Comp = managed.plugin.getGlobeComponent!();
+                const enabled = layers[managed.plugin.id]?.enabled ?? false;
+                return <Comp key={managed.plugin.id} viewer={viewerRef.current} enabled={enabled} />;
+            });
+    }, [layers]);
+
     return (
         <Viewer
             full
@@ -294,6 +307,8 @@ export default function GlobeView() {
             baseLayer={false}
             contextOptions={CONTEXT_OPTIONS}
             style={VIEWER_STYLE}
-        />
+        >
+            {viewerReady && PluginGlobeComponents}
+        </Viewer>
     );
 }

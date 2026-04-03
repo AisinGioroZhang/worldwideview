@@ -10,6 +10,7 @@ export function PanelToggleArrows() {
     const leftSidebarOpen = useStore((s) => s.leftSidebarOpen);
     const configPanelOpen = useStore((s) => s.configPanelOpen);
     const openMobilePanel = useStore((s) => s.openMobilePanel);
+    const mobileRightPanelGlow = useStore((s) => s.mobileRightPanelGlow);
 
     const toggleLeftSidebar = useStore((s) => s.toggleLeftSidebar);
     const toggleConfigPanel = useStore((s) => s.toggleConfigPanel);
@@ -53,7 +54,7 @@ export function PanelToggleArrows() {
 
             {/* Right Toggle — always fixed to right edge on mobile */}
             <button
-                className={`panel-toggle-btn panel-toggle-btn--right ${isRightOpen ? "panel-toggle-btn--open" : ""} ${isMobile ? "panel-toggle-btn--mobile" : ""}`}
+                className={`panel-toggle-btn panel-toggle-btn--right ${isRightOpen ? "panel-toggle-btn--open" : ""} ${isMobile ? "panel-toggle-btn--mobile" : ""} ${isMobile && mobileRightPanelGlow ? "panel-toggle-btn--glow" : ""}`}
                 onClick={handleRightToggle}
                 title="Toggle Data Configuration"
             >

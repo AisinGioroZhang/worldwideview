@@ -17,8 +17,15 @@ import { BordersPlugin } from "@worldwideview/wwv-plugin-borders";
 import { CameraPlugin } from "@worldwideview/wwv-plugin-camera";
 import { MilitaryPlugin } from "@worldwideview/wwv-plugin-military-aviation";
 import { SatellitePlugin } from "@worldwideview/wwv-plugin-satellite";
-import { IranWarStrikesPlugin } from "@worldwideview/wwv-plugin-iranwarlive";
+import { IranWarLivePlugin } from "@worldwideview/wwv-plugin-iranwarlive";
 import { EarthquakesPlugin } from "@worldwideview/wwv-plugin-earthquakes";
+import { DayNightPlugin } from "@worldwideview/wwv-plugin-daynight";
+import { UnderseaCablesPlugin } from "@worldwideview/wwv-plugin-undersea-cables";
+import { GpsJammingPlugin } from "@worldwideview/wwv-plugin-gps-jamming";
+import { ConflictEventsPlugin } from "@worldwideview/wwv-plugin-conflict-events";
+import { CivilUnrestPlugin } from "@worldwideview/wwv-plugin-civil-unrest";
+import { SurveillanceSatellitesPlugin } from "@worldwideview/wwv-plugin-surveillance-satellites";
+import { CyberAttacksPlugin } from "@worldwideview/wwv-plugin-cyber-attacks";
 import { useStore } from "@/core/state/store";
 import { dataBus } from "@/core/data/DataBus";
 import { PanelToggleArrows } from "@/components/layout/PanelToggleArrows";
@@ -70,8 +77,15 @@ export function AppShell() {
                 new CameraPlugin(),
                 new MilitaryPlugin(),
                 new SatellitePlugin(),
-                new IranWarStrikesPlugin(),
+                new IranWarLivePlugin(),
                 new EarthquakesPlugin(),
+                new DayNightPlugin(),
+                new UnderseaCablesPlugin(),
+                new GpsJammingPlugin(),
+                new ConflictEventsPlugin(),
+                new CivilUnrestPlugin(),
+                new SurveillanceSatellitesPlugin(),
+                new CyberAttacksPlugin(),
             ];
 
             for (const plugin of builtIns) {

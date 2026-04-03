@@ -30,6 +30,27 @@ function defaultPointSize(): number {
     return 8;
 }
 
+const dotIconCache = new Map<string, string>();
+
+/** Generates a simple circular dot SVG to act as a fallback billboard for points, enabling pixelOffsets. */
+export function getDefaultDotIcon(color: Color, outlineColor: Color, outlineWidth: number, size: number): string {
+    const colorHash = color.toCssColorString();
+    const strokeHash = outlineColor.toCssColorString();
+    const key = `${colorHash}_${strokeHash}_${outlineWidth}_${size}`;
+    let cached = dotIconCache.get(key);
+    if (!cached) {
+        const actualSize = size + outlineWidth * 2 + 4;
+        const center = actualSize / 2;
+        const radius = size / 2;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${actualSize}" height="${actualSize}">
+            <circle cx="${center}" cy="${center}" r="${radius}" fill="${colorHash}" stroke="${strokeHash}" stroke-width="${outlineWidth}"/>
+        </svg>`;
+        cached = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        dotIconCache.set(key, cached);
+    }
+    return cached;
+}
+
 /** Update an existing AnimatableItem with new entity data. */
 export function updateExistingItem(
     item: AnimatableItem, entity: GeoEntity, options: CesiumEntityOptions, color: Color
@@ -41,7 +62,10 @@ export function updateExistingItem(
     item.velocityVector = undefined;
     item.baseColor = color;
     item.baseOutlineColor = getCachedColor(options.outlineColor) || Color.BLACK;
-    if (!Color.equals(item.primitive.color, color)) item.primitive.color = color;
+
+    const billboardColor = (options as any)._isAutoSVG ? Color.WHITE : color;
+
+    if (!Color.equals(item.primitive.color, billboardColor)) item.primitive.color = billboardColor;
     if (!Cartesian3.equals(item.primitive.position, item.posRef)) item.primitive.position = item.posRef;
     if (options.iconUrl) {
         const baseSize = getBaseSize();
@@ -89,6 +113,8 @@ export function createNewItem(
     // Use the hi-res cached icon if available, otherwise use raw and trigger async upscale
     const resolvedIcon = options.iconUrl ? (getHiResIconSync(options.iconUrl) ?? options.iconUrl) : undefined;
     const baseSize = getBaseSize();
+    const billboardColor = (options as any)._isAutoSVG ? Color.WHITE : color;
+
     const addedPrimitive = options.iconUrl
         ? billboards.add({
             position: newPosition, image: resolvedIcon,
@@ -96,7 +122,7 @@ export function createNewItem(
             scale: options.iconScale ?? DEFAULT_BILLBOARD_SCALE,
             verticalOrigin: VerticalOrigin.CENTER, horizontalOrigin: HorizontalOrigin.CENTER,
             rotation: options.rotation ? -CesiumMath.toRadians(options.rotation) : 0,
-            color, scaleByDistance: new NearFarScalar(1e6, 1.0, 2e7, 0.5), id: clickId,
+            color: billboardColor, scaleByDistance: new NearFarScalar(1e6, 1.0, 2e7, 0.5), id: clickId,
             eyeOffset: new Cartesian3(0, 0, options.depthBias ?? -10000), // Small depth bias for far-range terrain
             // WARNING: Do NOT use heightReference: HeightReference.CLAMP_TO_GROUND here.
             // It causes severe lag/performance drops with thousands of dynamic entities.

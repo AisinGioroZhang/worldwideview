@@ -10,6 +10,7 @@ export const DEFAULT_GROUPS = [
     "weather",        // Weather satellites
     "gps-ops",        // GPS constellation
     "resource",       // Earth observation / reconnaissance
+    "military",       // Military reconnaissance
 ] as const;
 
 export interface CelesTrakGP {

@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import { initDB } from './db';
+import { prisma } from './prisma';
 import { startScheduler } from './scheduler';
 import { seederStatus } from './scheduler';
 
@@ -38,7 +38,10 @@ fastify.get('/health', async (request, reply) => {
 
 async function start() {
   try {
-    // 1. Initialize SQLite Database
+    // 1. Initialize Prisma Database
+    await prisma.$connect();
+    
+    const { initDB } = await import('./db.js');
     initDB();
 
     // 2. Register Routes
@@ -48,10 +51,10 @@ async function start() {
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
     console.log(`[Server] WWV Data Engine listening on port ${PORT}`);
 
-    // 3. Import seeder registry (this registers them)
+    // 4. Import seeder registry (this registers them)
     await import('./seeders/index.js');
 
-    // 4. Start the Cron Scheduler
+    // 5. Start the Cron Scheduler
     startScheduler();
 
   } catch (err) {
@@ -59,5 +62,16 @@ async function start() {
     process.exit(1);
   }
 }
+
+// Graceful shutdown
+async function gracefulShutdown(signal: string) {
+  console.log(`\n[Server] ${signal} received. Shutting down...`);
+  await fastify.close();
+  await prisma.$disconnect();
+  process.exit(0);
+}
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 start();

@@ -1,7 +1,24 @@
 import type { ComponentType } from "react";
-export declare function createSvgIconUrl(Icon: ComponentType<any>, props?: any): string;
+/** Standard SVG icon size (px) used by createSvgIconUrl when no size is given. */
+export declare const DEFAULT_ICON_SIZE = 32;
+export interface IconUrlOptions extends Record<string, unknown> {
+    /** Icon color (stroke). */
+    color?: string;
+    /** SVG icon size in px (default: DEFAULT_ICON_SIZE). */
+    size?: number;
+    /** Show circle background behind icon (default: true). */
+    background?: boolean;
+    /** Background fill color (default: semi-transparent dark slate). */
+    backgroundColor?: string;
+}
+/**
+ * Convert a React icon component into a `data:image/svg+xml` URL for Cesium billboards.
+ * By default wraps the icon in a filled circle for visibility on any terrain.
+ * Pass `{ background: false }` to opt out.
+ */
+export declare function createSvgIconUrl(Icon: ComponentType<any>, opts?: IconUrlOptions): string;
 export type { PluginManifest, PluginFormat, PluginType, TrustTier, PluginCapability, DataSourceConfig, FieldMapping, RenderingConfig } from "./manifest";
-export type PluginCategory = "aviation" | "maritime" | "conflict" | "natural-disaster" | "infrastructure" | "cyber" | "economic" | "custom";
+export type PluginCategory = "aviation" | "maritime" | "conflict" | "natural-disaster" | "infrastructure" | "cyber" | "economic" | "intelligence" | "custom";
 export interface TimeRange {
     start: Date;
     end: Date;
@@ -18,6 +35,12 @@ export interface GeoEntity {
     timestamp: Date;
     label?: string;
     properties: Record<string, unknown>;
+}
+export interface WsStreamPayload {
+    type: "data" | "error";
+    pluginId?: string;
+    payload?: GeoEntity[];
+    error?: string;
 }
 export interface LayerConfig {
     color: string;
@@ -42,10 +65,20 @@ export interface CesiumEntityOptions {
         far: number;
     };
     disableDepthTestDistance?: number;
+    /** Billboard scale override (default: 0.6). Plugin devs can set this to control icon size. */
+    iconScale?: number;
+    /** GPU Depth Test bias (meters). Negative values pull billboard towards camera (default: -1000 for visibility). */
+    depthBias?: number;
     modelUrl?: string;
     modelScale?: number;
     modelMinPixelSize?: number;
     modelHeadingOffset?: number;
+    trailOptions?: {
+        width?: number;
+        color?: string;
+        dashPattern?: "solid" | "dashed";
+        opacityFade?: boolean;
+    };
 }
 export interface SelectionBehavior {
     showTrail?: boolean;
@@ -137,8 +170,14 @@ export interface WorldPlugin {
     getSettingsComponent?(): ComponentType<{
         pluginId: string;
     }>;
+    /** Custom React component injected into the Globe view for rendering primitives/data sources (e.g. GeoJSON). */
+    getGlobeComponent?(): ComponentType<{
+        viewer: any;
+        enabled: boolean;
+    }>;
     requiresConfiguration?(settings: unknown): boolean;
 }
+export type GlobePlugin = WorldPlugin;
 export type DataBusEvents = {
     pluginRegistered: {
         pluginId: string;

@@ -24,9 +24,14 @@ const scratchOffset = new Cartesian2();
 
 /** Tracks the dedicated textual badge primitive for each stack. */
 const hubBillboards = new Map<string, any>();
+const clusterIconCache = new Map<string, string>();
 
 /** Generates a base64 encoded SVG for the cluster hub icon. */
 function getClusterIcon(count: number, hexColor: string): string {
+    const cacheKey = `${count}_${hexColor}`;
+    let cached = clusterIconCache.get(cacheKey);
+    if (cached) return cached;
+
     const size = 36;
     const center = size / 2;
     const textStr = count > 99 ? '99+' : count.toString();
@@ -35,7 +40,10 @@ function getClusterIcon(count: number, hexColor: string): string {
         <circle cx="${center}" cy="${center}" r="16" fill="${fillValue}" stroke="${hexColor}" stroke-width="2.5"/>
         <text x="${center}" y="${center + 1}" font-family="Inter, sans-serif" font-size="14px" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${textStr}</text>
     </svg>`;
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    
+    cached = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    clusterIconCache.set(cacheKey, cached);
+    return cached;
 }
 
 /** Lerp a single value. */
@@ -79,52 +87,62 @@ function tickSingle(stack: EntityStack, now: number, billboards: BillboardCollec
 
     // Transition end
     if (state === "expanding" && t >= 1) stack.state = "expanded";
-    if (state === "collapsing" && t >= 1) stack.state = "collapsed";
-
-    // Animate ALL children (no one is left behind!)
-    for (let i = 0; i < children.length; i++) {
-        const item = children[i];
-        const prim = item.primitive;
-        if (!prim || prim.isDestroyed?.()) continue;
-
-        const offset = getSpiderOffset(item.entity.id);
-        if (!offset) continue;
-
-        // Animate pixel offset
-        if (state === "expanding") {
-            offset.currentX = lerp(0, offset.targetX, easeOut(t));
-            offset.currentY = lerp(0, offset.targetY, easeOut(t));
-        } else if (state === "collapsing") {
-            offset.currentX = lerp(offset.targetX, 0, easeOut(t));
-            offset.currentY = lerp(offset.targetY, 0, easeOut(t));
-        } else if (state === "expanded") {
-            offset.currentX = offset.targetX;
-            offset.currentY = offset.targetY;
-        } else {
-            // collapsed — snap to zero
-            offset.currentX = 0;
-            offset.currentY = 0;
+    if (state === "collapsing" && t >= 1) {
+        stack.state = "collapsed";
+        
+        // Final pass to ensure everything hidden completely
+        for (let i = 0; i < children.length; i++) {
+            const prim = children[i].primitive;
+            if (prim && !prim.isDestroyed?.() && prim.show) prim.show = false;
         }
+    }
 
-        // Apply pixel offset
-        if (prim.pixelOffset !== undefined) {
-            Cartesian2.fromElements(offset.currentX, offset.currentY, scratchOffset);
-            prim.pixelOffset = scratchOffset;
+    // Optimization: If it's collapsed, we don't need to recalculate or apply offsets and visibility
+    const isRestingCollapsed = stack.state === "collapsed";
+
+    if (!isRestingCollapsed) {
+        (stack as any)._enforcedHidden = false;
+        // Animate ALL children (no one is left behind!)
+        for (let i = 0; i < children.length; i++) {
+            const item = children[i];
+            const prim = item.primitive;
+            if (!prim || prim.isDestroyed?.()) continue;
+
+            const offset = getSpiderOffset(item.entity.id);
+            if (!offset) continue;
+
+            // Animate pixel offset
+            if (state === "expanding") {
+                offset.currentX = lerp(0, offset.targetX, easeOut(t));
+                offset.currentY = lerp(0, offset.targetY, easeOut(t));
+            } else if (state === "collapsing") {
+                offset.currentX = lerp(offset.targetX, 0, easeOut(t));
+                offset.currentY = lerp(offset.targetY, 0, easeOut(t));
+            } else if (state === "expanded") {
+                offset.currentX = offset.targetX;
+                offset.currentY = offset.targetY;
+            }
+
+            // Apply pixel offset
+            if (prim.pixelOffset !== undefined) {
+                Cartesian2.fromElements(offset.currentX, offset.currentY, scratchOffset);
+                prim.pixelOffset = scratchOffset;
+            }
+
+            // Show/hide child items
+            if (isOpen || state === "collapsing") {
+                const shouldShow = !item._occluded;
+                if (prim.show !== shouldShow) prim.show = shouldShow;
+            }
         }
-
-        // Parent point primitives have no pixelOffset support natively, 
-        // they just won't fan out cleanly unless using billboards, but this project heavily uses billboards.
-
-        // Show/hide child items
-        if (state === "collapsed") {
-            // A fully collapsed stack should immediately hide its children,
-            // even if newly formed (t < 1) to prevent z-fighting with the hub.
-            if (prim.show) prim.show = false;
-        } else if (state === "collapsing" && t >= 1) {
-            if (prim.show) prim.show = false;
-        } else if (isOpen || state === "collapsing") {
-            const shouldShow = !item._occluded;
-            if (prim.show !== shouldShow) prim.show = shouldShow;
+    } else {
+        // Enforce the collapsed hidden state exactly once to catch newly clustered primitives
+        if (!(stack as any)._enforcedHidden) {
+            for (let i = 0; i < children.length; i++) {
+                const prim = children[i].primitive;
+                if (prim && !prim.isDestroyed?.() && prim.show) prim.show = false;
+            }
+            (stack as any)._enforcedHidden = true;
         }
     }
 
@@ -139,7 +157,8 @@ function tickSingle(stack: EntityStack, now: number, billboards: BillboardCollec
 function manageDedicatedHub(stack: EntityStack, billboards: BillboardCollection) {
     let bb = hubBillboards.get(stack.id);
     const count = stack.children.length;
-    const cssColor = stack.hubItem.baseColor?.toCssColorString() ?? "#ffffff";
+    // Caching CSS color string per stack rather than generating it every frame
+    const cssColor = (stack.hubItem as any)._cachedCssColor ?? ((stack.hubItem as any)._cachedCssColor = stack.hubItem.baseColor?.toCssColorString() ?? "#ffffff");
     const expectedImage = getClusterIcon(count, cssColor);
 
     const anyExpanded = isAnyStackExpanded();

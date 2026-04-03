@@ -27,6 +27,7 @@ export interface UISlice {
     activeConfigTab: "intel" | "filters" | "cache" | "overlay" | "apikeys";
     highlightLayerId: string | null;
     openMobilePanel: "left" | "right" | null;
+    mobileRightPanelGlow: boolean;
     toggleLeftSidebar: () => void;
     toggleRightSidebar: () => void;
     toggleConfigPanel: () => void;
@@ -56,6 +57,7 @@ export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => (
     activeConfigTab: "filters",
     highlightLayerId: null,
     openMobilePanel: null,
+    mobileRightPanelGlow: false,
     toggleLeftSidebar: () =>
         set((state) => ({ leftSidebarOpen: !state.leftSidebarOpen })),
     toggleRightSidebar: () =>
@@ -71,13 +73,14 @@ export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => (
                 trackEvent("entity-select", { plugin: entity.pluginId, entityId: entity.id });
             });
         }
-        set({
+        set((state) => ({
             selectedEntity: entity,
             rightSidebarOpen: entity !== null,
             configPanelOpen: entity !== null,
-            openMobilePanel: entity !== null ? "right" : null,
+            openMobilePanel: entity !== null ? state.openMobilePanel : null,
+            mobileRightPanelGlow: entity !== null,
             activeConfigTab: entity !== null ? "intel" : "filters"
-        });
+        }));
     },
     setHoveredEntity: (entity, screenPos) =>
         set({ hoveredEntity: entity, hoveredScreenPosition: screenPos ?? null }),
@@ -111,6 +114,7 @@ export const createUISlice: StateCreator<AppStore, [], [], UISlice> = (set) => (
     setOpenMobilePanel: (panel) =>
         set((state) => ({
             openMobilePanel: state.openMobilePanel === panel ? null : panel,
+            mobileRightPanelGlow: panel === "right" ? false : state.mobileRightPanelGlow,
         })),
 });
 

@@ -7,10 +7,10 @@ import type { Viewer as CesiumViewer } from "cesium";
 import type { GeoEntity, CesiumEntityOptions } from "@/core/plugins/PluginTypes";
 import { globalChunkedProcessor } from "./ChunkedProcessor";
 import {
-    scratchPosition, getEntityColor,
+    scratchPosition, getEntityColor, getCachedColor,
     markAnimatablesDirty, getStableAnimatables,
 } from "./renderCaches";
-import { updateExistingItem, createNewItem, cleanupRemovedEntities } from "./primitiveOps";
+import { updateExistingItem, createNewItem, cleanupRemovedEntities, getDefaultDotIcon } from "./primitiveOps";
 import { rebuildStacks, calculateGridSizeDegrees } from "./StackManager";
 
 // Re-export for existing consumers
@@ -105,11 +105,23 @@ function renderSingleEntity(
 ) {
     currentIds.add(entity.id);
     Cartesian3.fromDegrees(entity.longitude, entity.latitude, entity.altitude || 0, Ellipsoid.WGS84, scratchPosition);
-    const color = getEntityColor(options);
+    
+    // Auto-upgrade missing icons to SVG Billboards so pixelOffsets (spiderifier) will work
+    const effectiveOptions = { ...options };
+    const baseColor = getEntityColor(effectiveOptions);
+    if (!effectiveOptions.iconUrl && effectiveOptions.type !== "model") {
+        const baseOutlineColor = getCachedColor(options.outlineColor) || Color.BLACK;
+        const outWidth = options.outlineWidth || 1;
+        const pSize = options.size || (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches ? 12 : 8);
+        effectiveOptions.iconUrl = getDefaultDotIcon(baseColor, baseOutlineColor, outWidth, pSize);
+        effectiveOptions.iconScale = 1.0;
+        (effectiveOptions as any)._isAutoSVG = true;
+    }
+    
     const clickId = { _wwvEntity: entity };
     let item = existingMap.get(entity.id);
 
-    if (item && item.options.type !== options.type) {
+    if (item && item.options.type !== effectiveOptions.type) {
         if (item.options.iconUrl) billboards.remove(item.primitive); else points.remove(item.primitive);
         if (item.labelPrimitive) labels.remove(item.labelPrimitive);
         existingMap.delete(entity.id);
@@ -117,9 +129,9 @@ function renderSingleEntity(
     }
 
     if (item) {
-        updateExistingItem(item, entity, options, color);
+        updateExistingItem(item, entity, effectiveOptions, baseColor);
     } else {
-        createNewItem(entity, options, color, clickId, existingMap, points, billboards);
+        createNewItem(entity, effectiveOptions, baseColor, clickId, existingMap, points, billboards);
     }
 }
 

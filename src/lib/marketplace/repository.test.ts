@@ -21,7 +21,7 @@ import {
     uninstallPlugin,
 } from "./repository";
 
-const mockInstalledPlugin = prisma.installedPlugin as {
+const mockInstalledPlugin = prisma.installedPlugin as unknown as {
     findMany: ReturnType<typeof vi.fn>;
     findFirst: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
