@@ -8,7 +8,7 @@ set -e
 
 mkdir -p ./data
 echo "[entrypoint] Running database migrations..."
-npx prisma migrate deploy
+npx -y prisma migrate deploy
 echo "[entrypoint] Migrations complete."
 
 exec node server.js
