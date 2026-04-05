@@ -26,7 +26,7 @@ RUN DATABASE_URL="file:./data/wwv.db" npx prisma generate
 RUN mkdir -p ./data && DATABASE_URL=file:./data/wwv.db npx prisma migrate deploy
 
 # Run Next.js build with Webpack cache mounted
-RUN --mount=type=cache,target=/app/.next/cache pnpm run build
+RUN --mount=type=cache,target=/app/.next/cache NODE_OPTIONS="--max_old_space_size=3072" pnpm run build
 RUN node scripts/copy-cesium.mjs
 
 # Stage 4: Production runner

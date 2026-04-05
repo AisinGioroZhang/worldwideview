@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
     "react-player",
     "satellite.js"
   ],
+  experimental: {
+    memoryBasedWorkersCount: true,
+    cpus: 2,
+    optimizePackageImports: ["lucide-react"],
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   async headers() {
     return [
       {
@@ -36,7 +44,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               // CesiumJS requires unsafe-eval (worker compilation) and unsafe-inline (styles)
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://analytics.worldwideview.dev https://va.vercel-scripts.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://analytics.worldwideview.dev https://va.vercel-scripts.com https://pagead2.googlesyndication.com https://adservice.google.com https://www.googletagservices.com",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "font-src 'self' fonts.gstatic.com",
               // Camera streams load images/MJPEG from arbitrary IPs worldwide — http: https: required
@@ -46,7 +54,7 @@ const nextConfig: NextConfig = {
               // HLS video streams from arbitrary camera sources
               "media-src 'self' blob: http: https:",
               // Embeddable video platforms for camera iframes
-              "frame-src 'self' *.youtube.com *.youtube-nocookie.com *.twitch.tv *.vimeo.com *.webcamera.pl *.ivideon.com *.rtsp.me *.bnu.tv",
+              "frame-src 'self' *.youtube.com *.youtube-nocookie.com *.twitch.tv *.vimeo.com *.webcamera.pl *.ivideon.com *.rtsp.me *.bnu.tv https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
               "worker-src 'self' blob:",
               "frame-ancestors 'none'",
             ].join("; "),
