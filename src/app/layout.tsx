@@ -35,6 +35,13 @@ export default function RootLayout({
           data-website-id="2c8f6c09-2651-4a2a-af99-b8cee1612b9a"
           strategy="afterInteractive"
         />
+        {process.env.NEXT_PUBLIC_WWV_EDITION === "demo" && process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <Script
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

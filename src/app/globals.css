@@ -111,12 +111,23 @@ html, body {
   border-radius: var(--radius-lg);
 }
 
-/* ─── App Shell ───────────────────────────────────────────── */
-.app-shell {
-  position: relative;
+/* ─── Page Root (flex row: app + optional ad strip) ───────── */
+.page-root {
+  display: flex;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  --ad-strip-inset: 0px;
+}
+
+/* ─── App Shell ───────────────────────────────────────────── */
+.app-shell {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  isolation: isolate; /* contain fixed children so ad strip renders on top */
 }
 
 .app-shell__globe {
@@ -130,7 +141,7 @@ html, body {
   position: fixed;
   top: var(--space-lg);
   left: var(--space-lg);
-  right: var(--space-lg);
+  right: calc(var(--ad-strip-inset, 0px) + var(--space-lg));
   z-index: 100;
   display: flex;
   align-items: center;
@@ -304,7 +315,7 @@ html, body {
 }
 
 .sidebar--right {
-  right: var(--space-lg);
+  right: calc(var(--ad-strip-inset, 0px) + var(--space-lg));
 }
 
 .sidebar--right.sidebar--closed {
@@ -430,7 +441,7 @@ html, body {
   position: fixed;
   bottom: var(--space-lg);
   left: var(--space-lg);
-  right: var(--space-lg);
+  right: calc(var(--ad-strip-inset, 0px) + var(--space-lg));
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -1245,7 +1256,7 @@ html, body {
 
 /* RIGHT ARROW */
 .panel-toggle-btn--right {
-  right: 0;
+  right: var(--ad-strip-inset, 0px);
   border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   border-right: none;
   /* When closed, hide mostly off-screen, poke out 12px */
@@ -1260,7 +1271,7 @@ html, body {
 
 .panel-toggle-btn--right.panel-toggle-btn--open {
   /* Attach to the left edge of the right panel (width 320px + right padding 24px) */
-  right: calc(320px + var(--space-lg));
+  right: calc(320px + var(--space-lg) + var(--ad-strip-inset, 0px));
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   border-right: none;
   /* Stay slightly hidden under the panel to look attached, poke out 24px */
@@ -1721,7 +1732,7 @@ html, body {
   position: fixed;
   /* Header is at top: var(--space-lg) [16px] and is 52px tall (total 68px). We tuck this 12px underneath the header so its top edge is hidden behind it */
   top: calc(var(--space-lg) + 40px);
-  left: 50%;
+  left: calc(50% - (var(--ad-strip-inset, 0px) / 2));
   transform: translateX(-50%);
   display: flex;
   align-items: center;

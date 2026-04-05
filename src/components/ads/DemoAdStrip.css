@@ -1,0 +1,101 @@
+/* src/components/ads/DemoAdStrip.css */
+
+/* The ad strip is a flex child sibling of .app-shell inside .page-root */
+.demo-ad-strip {
+    position: relative;
+    z-index: 1; /* renders above app-shell's isolated stacking context */
+    width: 160px;
+    flex-shrink: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-subtle);
+    padding: var(--space-md);
+}
+
+.demo-ad-strip__ad {
+    width: 140px;
+    flex: 1;
+    min-height: 0;
+}
+
+.demo-ad-strip__label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.4;
+    user-select: none;
+}
+
+.demo-ad-strip__banner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    max-width: 140px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.demo-ad-strip__banner:hover {
+    border-color: rgba(var(--accent-rgb), 0.3);
+    box-shadow: var(--glow-cyan);
+}
+
+.demo-ad-strip__banner-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.demo-ad-strip__banner-text {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.demo-ad-strip__close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.demo-ad-strip__close:hover {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+/* Hide on mobile — ads shouldn't show on small screens */
+@media (max-width: 768px) {
+    .demo-ad-strip {
+        display: none;
+    }
+}
