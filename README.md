@@ -1,5 +1,7 @@
 # WorldWideView
 
+Chinese documentation: [README.zh-CN.md](README.zh-CN.md)
+
 **WorldWideView** is a modular, real-time geospatial intelligence engine built on top of a CesiumJS 3D globe. It is designed to ingest live data streams, transform them through a generalized plugin system, and render them as high-performance visual layers.
 
 As a real-time situational awareness platform, it turns raw geospatial signals—such as aircraft positions, maritime AIS, or satellite orbits—into interactive, cinematic layers on a high-fidelity 3D globe.
