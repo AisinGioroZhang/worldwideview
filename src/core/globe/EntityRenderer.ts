@@ -139,15 +139,22 @@ function renderSingleEntity(
 export async function renderEntitiesChunked(
     viewer: CesiumViewer,
     visibleEntities: Array<{ entity: GeoEntity; options: CesiumEntityOptions }>,
-    existingMap: Map<string, AnimatableItem>
+    existingMap: Map<string, AnimatableItem>,
+    onChunkProcessed?: () => void
 ): Promise<AnimatableItem[]> {
     const { points, billboards, labels, polylines } = getCollections(viewer);
     if (!points || !billboards || !labels) return getStableAnimatables(existingMap);
     const currentIds = new Set<string>();
-    await globalChunkedProcessor.processChunked(visibleEntities, 1000, (chunk) => {
+    const completed = await globalChunkedProcessor.processChunked(visibleEntities, 500, (chunk) => {
         if (viewer.isDestroyed()) return;
         for (let i = 0; i < chunk.length; i++) renderSingleEntity(chunk[i], existingMap, points, billboards, labels, currentIds);
+        if (onChunkProcessed) onChunkProcessed();
     });
+
+    if (!completed || viewer.isDestroyed()) {
+        return getStableAnimatables(existingMap);
+    }
+
     cleanupRemovedEntities(existingMap, currentIds, points, billboards, labels, polylines);
     markAnimatablesDirty();
 

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Viewer as CesiumViewer } from "cesium";
 import { Cartographic, Cartesian3 } from "cesium";
 import type { GeoEntity, CesiumEntityOptions } from "@/core/plugins/PluginTypes";
-import { renderEntities, AnimatableItem } from "../EntityRenderer";
+import { renderEntities, renderEntitiesChunked, AnimatableItem } from "../EntityRenderer";
 import { createUpdateLoop } from "../AnimationLoop";
 import { rebuildStacks, calculateGridSizeDegrees } from "../StackManager";
 
@@ -85,11 +85,21 @@ export function useEntityRendering(
         );
         viewer.scene.preUpdate.addEventListener(updatePositions);
 
-        // Synchronous render — all entities processed atomically in a single frame
-        renderEntities(viewer, visibleEntities, animatablesMapRef.current);
+        let isActive = true;
 
-        // Rebuild cached array after render
-        cachedAnimatablesRef.current.current = Array.from(animatablesMapRef.current.values());
+        if (visibleEntities.length > 500) {
+            renderEntitiesChunked(viewer, visibleEntities, animatablesMapRef.current).then(() => {
+                if (!isActive || viewer.isDestroyed()) return;
+                cachedAnimatablesRef.current.current = Array.from(animatablesMapRef.current.values());
+                viewer.scene.requestRender();
+            });
+        } else {
+            // Synchronous render — all entities processed atomically in a single frame
+            renderEntities(viewer, visibleEntities, animatablesMapRef.current);
+
+            // Rebuild cached array after render
+            cachedAnimatablesRef.current.current = Array.from(animatablesMapRef.current.values());
+        }
 
         // Camera distance-based dynamic clustering
         let lastAltitude = 0;
@@ -115,6 +125,7 @@ export function useEntityRendering(
         viewer.scene.requestRender();
 
         return () => {
+            isActive = false;
             if (!viewer.isDestroyed()) {
                 viewer.scene.preUpdate.removeEventListener(updatePositions);
                 viewer.scene.preUpdate.removeEventListener(handlePreUpdateClustering);

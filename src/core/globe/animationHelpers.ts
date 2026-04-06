@@ -40,6 +40,14 @@ export function extrapolatePosition(item: AnimatableItem, nowMs: number): void {
     const dtSec = (nowMs - timestamp.getTime()) / 1000;
     if (Math.abs(dtSec) > 300) return;
 
+    if (!entity.speed) {
+        if (item.primitive && !item.primitive.isDestroyed?.() && !Cartesian3.equals(item.primitive.position, posRef)) {
+            item.primitive.position = posRef;
+            if (item.labelPrimitive && !item.labelPrimitive.isDestroyed?.()) item.labelPrimitive.position = posRef;
+        }
+        return;
+    }
+
     if (!item.velocityVector) {
         const headingRad = CesiumMath.toRadians(entity.heading!);
         Ellipsoid.WGS84.geodeticSurfaceNormal(posRef, scratchSurfaceNormal);
@@ -54,18 +62,10 @@ export function extrapolatePosition(item: AnimatableItem, nowMs: number): void {
         Cartesian3.multiplyByScalar(scratchNorth, Math.cos(headingRad), scratchVelocity);
         Cartesian3.multiplyByScalar(scratchEast, Math.sin(headingRad), scratchEast);
         Cartesian3.add(scratchVelocity, scratchEast, scratchVelocity);
-        Cartesian3.multiplyByScalar(scratchVelocity, entity.speed!, scratchVelocity);
+        Cartesian3.multiplyByScalar(scratchVelocity, entity.speed, scratchVelocity);
 
         item.basePosition = Cartesian3.clone(posRef);
         item.velocityVector = Cartesian3.clone(scratchVelocity);
-    }
-
-    if (entity.speed === 0) {
-        if (item.primitive && !item.primitive.isDestroyed?.() && item.primitive.position !== posRef) {
-            item.primitive.position = posRef;
-            if (item.labelPrimitive && !item.labelPrimitive.isDestroyed?.()) item.labelPrimitive.position = posRef;
-        }
-        return;
     }
 
     Cartesian3.multiplyByScalar(item.velocityVector, dtSec, scratchDisplacement);

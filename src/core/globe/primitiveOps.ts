@@ -118,7 +118,7 @@ export function createNewItem(
     const addedPrimitive = options.iconUrl
         ? billboards.add({
             position: newPosition, image: resolvedIcon,
-            width: baseSize, height: baseSize,
+            width: baseSize, height: baseSize, show: false,
             scale: options.iconScale ?? DEFAULT_BILLBOARD_SCALE,
             verticalOrigin: VerticalOrigin.CENTER, horizontalOrigin: HorizontalOrigin.CENTER,
             rotation: options.rotation ? -CesiumMath.toRadians(options.rotation) : 0,
@@ -130,7 +130,7 @@ export function createNewItem(
         })
         : points.add({
             position: newPosition, pixelSize: options.size || defaultPointSize(), color, outlineColor,
-            outlineWidth: options.outlineWidth || 1,
+            outlineWidth: options.outlineWidth || 1, show: false,
             scaleByDistance: new NearFarScalar(1e6, 1.0, 2e7, 0.5), id: clickId,
             disableDepthTestDistance: options.disableDepthTestDistance ?? Number.POSITIVE_INFINITY, distanceDisplayCondition: ddc,
         });

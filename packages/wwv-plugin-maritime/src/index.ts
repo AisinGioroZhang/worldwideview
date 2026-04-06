@@ -70,8 +70,8 @@ export class MaritimePlugin implements WorldPlugin {
                     pluginId: "maritime",
                     latitude: v.lat ?? v.latitude,
                     longitude: v.lon ?? v.longitude,
-                    heading: v.hdg ?? v.heading,
-                    speed: v.spd ?? v.speed,
+                    heading: v.hdg === 511 ? undefined : (v.hdg ?? v.heading),
+                    speed: v.spd !== undefined ? v.spd * 0.514444 : (v.speed !== undefined ? v.speed * 0.514444 : undefined),
                     timestamp: v.last_updated ? new Date(v.last_updated * 1000) : new Date(v.timestamp || Date.now()),
                     label: v.name ?? v.label,
                     properties: { 
@@ -117,10 +117,17 @@ export class MaritimePlugin implements WorldPlugin {
             rotation: entity.heading,
             labelText: entity.label || undefined, labelFont: "11px JetBrains Mono, monospace",
             distanceDisplayCondition: { near: 0, far: 1000000 },
+            trailOptions: {
+                width: 2,
+                color: color,
+                opacityFade: true
+            }
         };
     }
 
     getSelectionBehavior(entity: GeoEntity): SelectionBehavior | null {
+        if (!entity.speed || entity.speed < 0.1) return null; // No generated trails for moored ships
+        
         return {
             showTrail: true,
             trailDurationSec: 3600,

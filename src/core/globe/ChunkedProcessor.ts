@@ -18,13 +18,13 @@ export class ChunkedProcessor {
         items: T[],
         chunkSize: number,
         processFn: (chunk: T[]) => void
-    ): Promise<void> {
+    ): Promise<boolean> {
         this.currentRunId++;
         const runId = this.currentRunId;
 
         return new Promise((resolve, reject) => {
             if (!items || items.length === 0) {
-                return resolve();
+                return resolve(true);
             }
 
             let index = 0;
@@ -32,7 +32,7 @@ export class ChunkedProcessor {
             const processNextChunk = (deadline?: IdleDeadline) => {
                 // Cancel silently if a newer run was started
                 if (runId !== this.currentRunId) {
-                    return resolve();
+                    return resolve(false);
                 }
 
                 // Process items while we have time (if deadline is provided) or process at least one chunk
@@ -52,7 +52,7 @@ export class ChunkedProcessor {
                 if (index < items.length) {
                     scheduleNext();
                 } else {
-                    resolve();
+                    resolve(true);
                 }
             };
 
