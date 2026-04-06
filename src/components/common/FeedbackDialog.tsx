@@ -73,8 +73,9 @@ export function FeedbackDialog() {
                 video.onloadedmetadata = resolve;
             });
 
-            // Wait a brief moment for the video frame to stabilize
-            await new Promise(r => setTimeout(r, 100));
+            // Wait 800ms to allow the browser's native "Choose what to share" dialog 
+            // to completely finish its fade-out animation from the OS before we capture the frame.
+            await new Promise(r => setTimeout(r, 800));
 
             const canvas = document.createElement("canvas");
             canvas.width = video.videoWidth;
