@@ -10,8 +10,16 @@ import type {
     ServerPluginConfig,
     FilterDefinition,
 } from "@worldwideview/wwv-plugin-sdk";
+import { generateMockAviationEntities } from "./mockAviationData";
 
+declare const process:
+    | { env?: Record<string, string | undefined> }
+    | undefined;
 
+const AVIATION_MOCK_COUNT = 100_000;
+const AVIATION_MOCK_ENABLED =
+    typeof process !== "undefined" && process?.env?.NEXT_PUBLIC_AVIATION_MOCK_100K === "true";
+console.log("[AviationPlugin] 🚀 ~ AVIATION_MOCK_ENABLED:", AVIATION_MOCK_ENABLED);
 
 function altitudeToColor(altitude: number | null): string {
     if (altitude === null || altitude <= 0) return "#4ade80";
@@ -37,9 +45,25 @@ export class AviationPlugin implements WorldPlugin {
     category = "aviation" as const;
     version = "1.0.0";
     private context: PluginContext | null = null;
+    private mockCache: GeoEntity[] | null = null;
 
-    async initialize(ctx: PluginContext): Promise<void> { this.context = ctx; }
+    async initialize(ctx: PluginContext): Promise<void> {
+        this.context = ctx;
+        if (AVIATION_MOCK_ENABLED) {
+            const mock = this.getOrCreateMockEntities();
+            // Seed once at startup so opening the layer can immediately use a large in-memory dataset.
+            this.context.onDataUpdate(mock);
+            console.log(`[AviationPlugin] Mock mode ON: seeded ${mock.length.toLocaleString()} aircraft`);
+        }
+    }
     destroy(): void { this.context = null; }
+
+    private getOrCreateMockEntities(): GeoEntity[] {
+        if (!this.mockCache) {
+            this.mockCache = generateMockAviationEntities(AVIATION_MOCK_COUNT);
+        }
+        return this.mockCache;
+    }
 
     private mapPayloadToEntities(payloadData: any): GeoEntity[] {
         let aircraftList: any[] = [];
@@ -76,6 +100,10 @@ export class AviationPlugin implements WorldPlugin {
     }
 
     async fetch(_timeRange: TimeRange): Promise<GeoEntity[]> {
+        if (AVIATION_MOCK_ENABLED) {
+            return this.getOrCreateMockEntities();
+        }
+
         try {
             let res: Response;
             
@@ -98,6 +126,9 @@ export class AviationPlugin implements WorldPlugin {
     }
 
     mapWebsocketPayload(payload: any): GeoEntity[] {
+        if (AVIATION_MOCK_ENABLED) {
+            return this.getOrCreateMockEntities();
+        }
         return this.mapPayloadToEntities(payload);
     }
 
