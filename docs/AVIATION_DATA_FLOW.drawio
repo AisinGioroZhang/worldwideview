@@ -1,13 +1,13 @@
 <mxfile host="65bd71144e">
     <diagram id="aviation-flow" name="Aviation Data Flow">
-        <mxGraphModel dx="527" dy="283" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1200" math="0" shadow="0">
+        <mxGraphModel dx="946" dy="636" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1200" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="title" value="Aviation 数据流向图（分层 + 关键逻辑）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
                     <mxGeometry x="40" y="840" width="760" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="layerD" value="D. 前端数据编排层（事件/插件/订阅）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="1" vertex="1">
+                <mxCell id="layerD" value="D. 前端数据编排层（事件/插件/订阅）图层开关，订阅数据流，调用插件做数据映射" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="1" vertex="1">
                     <mxGeometry x="1110" y="340" width="1220" height="380" as="geometry"/>
                 </mxCell>
                 <mxCell id="toggle" value="LayerPanel.tsx&#xa;handleToggle(&#39;aviation&#39;)&#xa;-&amp;gt; pluginManager.enablePlugin()&#xa;-&amp;gt; dataBus.emit(&#39;layerToggled&#39;)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=14;" parent="layerD" vertex="1">
@@ -50,7 +50,7 @@
                 <mxCell id="11" value="" style="group;fontSize=14;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="1310" y="20" width="460" height="280" as="geometry"/>
                 </mxCell>
-                <mxCell id="layerC" value="C. Next.js 接入层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="11" vertex="1">
+                <mxCell id="layerC" value="C. Next.js 接入层（前端请求转发，插件注册）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="11" vertex="1">
                     <mxGeometry width="460" height="280" as="geometry"/>
                 </mxCell>
                 <mxCell id="rewrite" value="next.config.ts&#xa;rewrites():&#xa;/api/external/:source* -&amp;gt;&#xa;WWV_DATA_ENGINE_URL/data/:source*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=14;" parent="11" vertex="1">
@@ -62,7 +62,7 @@
                 <mxCell id="12" value="" style="group;fontSize=14;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="140" y="200" width="280" height="200" as="geometry"/>
                 </mxCell>
-                <mxCell id="layerA" value="A. 外部数据源层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="12" vertex="1">
+                <mxCell id="layerA" value="A. 外部数据源层（提供原始航空数据）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="12" vertex="1">
                     <mxGeometry width="280" height="200" as="geometry"/>
                 </mxCell>
                 <mxCell id="source" value="OpenSky Network&#xa;API: states/all&#xa;Token: client_credentials" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" parent="12" vertex="1">
@@ -71,7 +71,7 @@
                 <mxCell id="13" value="" style="group;fontSize=14;rounded=0;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="500" y="30" width="620" height="570" as="geometry"/>
                 </mxCell>
-                <mxCell id="layerB" value="B. 数据引擎层（packages/wwv-data-engine）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;glass=0;resizeWidth=1;resizeHeight=1;fixedWidth=0;autosize=0;" parent="13" vertex="1">
+                <mxCell id="layerB" value="B. 数据引擎层（packages/wwv-data-engine）抓取、清洗、缓存、通过http/ws分发数据" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;glass=0;resizeWidth=1;resizeHeight=1;fixedWidth=0;autosize=0;" parent="13" vertex="1">
                     <mxGeometry width="590" height="570" as="geometry"/>
                 </mxCell>
                 <mxCell id="dbRedis" value="db.ts / redis.ts&#xa;aviation_history(SQLite)&#xa;setLiveSnapshot(&#39;aviation&#39;, fleetObj)&#xa;关键: broadcastPluginData() 始终触发" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" parent="layerB" vertex="1">
