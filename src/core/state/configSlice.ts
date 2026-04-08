@@ -61,7 +61,7 @@ export const createConfigSlice: StateCreator<AppStore, [], [], ConfigSlice> = (s
         maxScreenSpaceError: 16,
         shadowsEnabled: false,
         enableLighting: false,
-        baseLayerId: "google-3d",
+        baseLayerId: "bing-aerial",
         sceneMode: 3,
     },
     updateDataConfig: (config) =>
