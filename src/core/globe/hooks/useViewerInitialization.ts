@@ -34,32 +34,40 @@ export function useViewerInitialization(sceneSettings: any) {
             fireGlobeReady();
         }, 15_000);
 
-        try {
-            const tileset = await createGooglePhotorealistic3DTileset({
-                key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || undefined,
-                onlyUsingWithGoogleGeocoder: true,
-                ...({ enableCollision: true } as Record<string, unknown>),
-            });
-
-            if (viewer.isDestroyed()) {
-                console.warn("[GlobeView] Viewer destroyed during tileset init — aborting.");
-                clearTimeout(globalTimeout);
-                return;
-            }
-
-            tileset.maximumScreenSpaceError = sceneSettings.maxScreenSpaceError;
-            viewer.scene.primitives.add(tileset);
-
-            const removeListener = tileset.initialTilesLoaded.addEventListener(() => {
-                console.log("[GlobeView] Initial tiles loaded — globe ready.");
-                clearTimeout(globalTimeout);
-                fireGlobeReady();
-                removeListener();
-            });
-        } catch (err) {
-            console.warn("[GlobeView] Failed to initialize Google 3D Tiles:", err);
+        const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!googleMapsKey) {
+            console.warn("[GlobeView] Skipping Google 3D Tiles initialization: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not configured.");
             clearTimeout(globalTimeout);
             fireGlobeReady();
+        } else {
+            try {
+                const tileset = await createGooglePhotorealistic3DTileset({
+                    key: googleMapsKey,
+                    onlyUsingWithGoogleGeocoder: true,
+                    ...({ enableCollision: true } as Record<string, unknown>),
+                });
+
+                if (viewer.isDestroyed()) {
+                    console.warn("[GlobeView] Viewer destroyed during tileset init — aborting.");
+                    clearTimeout(globalTimeout);
+                    return;
+                }
+
+                tileset.maximumScreenSpaceError = sceneSettings.maxScreenSpaceError;
+                (tileset as any)._wwvGoogle3D = true;
+                viewer.scene.primitives.add(tileset);
+
+                const removeListener = tileset.initialTilesLoaded.addEventListener(() => {
+                    console.log("[GlobeView] Initial tiles loaded — globe ready.");
+                    clearTimeout(globalTimeout);
+                    fireGlobeReady();
+                    removeListener();
+                });
+            } catch (err) {
+                console.warn("[GlobeView] Failed to initialize Google 3D Tiles:", err);
+                clearTimeout(globalTimeout);
+                fireGlobeReady();
+            }
         }
 
         if (viewer.isDestroyed()) return;

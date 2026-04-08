@@ -47,9 +47,7 @@ export function useImageryManager(viewer: CesiumViewer | null) {
 
             for (let i = 0; i < primitives.length; i++) {
                 const p = primitives.get(i);
-                // Simple check for Google Tileset - usually it's the only 3DTileset 
-                // added during initialization or has custom properties
-                if (p instanceof Cesium3DTileset) {
+                if ((p as any)?._wwvGoogle3D) {
                     foundTileset = p;
                     break;
                 }
@@ -59,19 +57,19 @@ export function useImageryManager(viewer: CesiumViewer | null) {
                 foundTileset.show = isGoogle3D;
             }
 
-            // If we are in Google 3D mode, we usually hide the globe surface 
-            // to avoid z-fighting or showing low-res imagery underneath
-            viewer.scene.globe.show = !isGoogle3D;
+            const google3DAvailable = Boolean(foundTileset);
+            viewer.scene.globe.show = !(isGoogle3D && google3DAvailable);
 
-            // Manage standard imagery layer
             if (isGoogle3D) {
-                // Remove current custom imagery if switching to Google 3D
-                if (currentImageryLayerRef.current) {
-                    viewer.imageryLayers.remove(currentImageryLayerRef.current);
-                    currentImageryLayerRef.current = null;
+                if (google3DAvailable) {
+                    if (currentImageryLayerRef.current) {
+                        viewer.imageryLayers.remove(currentImageryLayerRef.current);
+                        currentImageryLayerRef.current = null;
+                    }
+                } else {
+                    console.warn("[useImageryManager] Google 3D requested but tileset is unavailable. Keeping globe surface visible.");
                 }
             } else {
-                // Instantiate and Add new imagery provider
                 try {
                     const provider = await createImageryProvider(baseLayerId);
                     const newLayer = new ImageryLayer(provider);
