@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="aviation-flow" name="Aviation Data Flow">
-        <mxGraphModel dx="1880" dy="916" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1200" math="0" shadow="0">
+        <mxGraphModel dx="527" dy="283" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1200" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -14,12 +14,12 @@
                     <mxGeometry x="60" y="40" width="240" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="wsClient" value="core/data/WsClient.ts&#xa;onmessage -&amp;gt; parse WsStreamPayload&#xa;plugin.mapWebsocketPayload(payload)&#xa;emit dataUpdated(pluginId, entities)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=14;" parent="layerD" vertex="1">
-                    <mxGeometry x="430" y="215" width="240" height="120" as="geometry"/>
+                    <mxGeometry x="410" y="120" width="300" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="aviationPlugin" value="packages/wwv-plugin-aviation/src/index.ts&#xa;mapPayloadToEntities()&#xa;mapWebsocketPayload()&#xa;重要: altitude = (st.alt || 0) * 10&#xa;getAltitudeBand() / renderEntity()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=14;" parent="layerD" vertex="1">
                     <mxGeometry x="820" y="215" width="360" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="flow10" value="mapWebsocketPayload" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="layerD" source="wsClient" target="aviationPlugin" edge="1">
+                <mxCell id="flow10" value="mapWebsocketPayload" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="layerD" source="wsClient" target="aviationPlugin" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="pluginFetch" value="AviationPlugin.fetch() (HTTP 回退/时间轴)&#xa;播放模式: /api/external/aviation?time=...&#xa;实时模式: /api/external/aviation?lookback=15m" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=14;" parent="layerD" vertex="1">
@@ -29,18 +29,25 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="subscriber" value="DataBusSubscriber.tsx&#xa;wsClient.connect()&#xa;监听 layerToggled&#xa;enabled -&amp;gt; wsClient.subscribe(&#39;aviation&#39;)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=14;" parent="layerD" vertex="1">
-                    <mxGeometry x="60" y="215" width="240" height="120" as="geometry"/>
+                    <mxGeometry x="60" y="250" width="240" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="flow9" value="subscribe(&#39;aviation&#39;)" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="layerD" source="subscriber" target="wsClient" edge="1">
+                <mxCell id="flow9" value="subscribe(&#39;aviation&#39;)" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" parent="layerD" source="subscriber" target="wsClient" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="flow8" value="layerToggled" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="layerD" source="toggle" target="subscriber" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                    <mxGeometry x="0.3333" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="flow5" value="/stream 数据推送" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="layerD" source="subscriber" target="wsClient" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="flow19" value="return GeoEntity[]（映射结果）" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=14;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="layerD" source="aviationPlugin" target="wsClient">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1000" y="360"/>
+                            <mxPoint x="635" y="360"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="11" value="" style="group;fontSize=14;" vertex="1" connectable="0" parent="1">
+                <mxCell id="11" value="" style="group;fontSize=14;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="1310" y="20" width="460" height="280" as="geometry"/>
                 </mxCell>
                 <mxCell id="layerC" value="C. Next.js 接入层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="11" vertex="1">
@@ -52,7 +59,7 @@
                 <mxCell id="appshell" value="AppShell.tsx&#xa;注册: new AviationPlugin()&#xa;pluginRegistry.register()&#xa;pluginManager.registerPlugin()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=14;" parent="11" vertex="1">
                     <mxGeometry x="30" y="160" width="400" height="90" as="geometry"/>
                 </mxCell>
-                <mxCell id="12" value="" style="group;fontSize=14;" vertex="1" connectable="0" parent="1">
+                <mxCell id="12" value="" style="group;fontSize=14;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="140" y="200" width="280" height="200" as="geometry"/>
                 </mxCell>
                 <mxCell id="layerA" value="A. 外部数据源层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;" parent="12" vertex="1">
@@ -61,7 +68,7 @@
                 <mxCell id="source" value="OpenSky Network&#xa;API: states/all&#xa;Token: client_credentials" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" parent="12" vertex="1">
                     <mxGeometry x="20" y="59.99666666666667" width="240" height="91.66666666666667" as="geometry"/>
                 </mxCell>
-                <mxCell id="13" value="" style="group;fontSize=14;rounded=0;" vertex="1" connectable="0" parent="1">
+                <mxCell id="13" value="" style="group;fontSize=14;rounded=0;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="500" y="30" width="620" height="570" as="geometry"/>
                 </mxCell>
                 <mxCell id="layerB" value="B. 数据引擎层（packages/wwv-data-engine）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=1;collapsible=0;recursiveResize=1;fontSize=14;glass=0;resizeWidth=1;resizeHeight=1;fixedWidth=0;autosize=0;" parent="13" vertex="1">
@@ -76,31 +83,23 @@
                 <mxCell id="flow4" value="HTTP 查询" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="layerB" source="dbRedis" target="httpEngine" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="wsEngine" value="websocket.ts + server.ts&#xa;GET /stream (WS)&#xa;handleConnection(): subscribe/unsubscribe&#xa;订阅时立即推送 latestSnapshot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" parent="layerB" vertex="1">
-                    <mxGeometry x="34.70649122807018" y="410" width="232.8947368421053" height="100" as="geometry"/>
-                </mxCell>
-                <mxCell id="flow3" value="WS 广播" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="layerB" source="dbRedis" target="wsEngine" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
                 <mxCell id="seedAviation" value="seeders/aviation.ts&#xa;pollOpenSky()&#xa;flushBuffer()&#xa;关键: 仅取 latestStates + 入库 history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" parent="13" vertex="1">
                     <mxGeometry x="36.47" y="75" width="225" height="130" as="geometry"/>
                 </mxCell>
                 <mxCell id="flow2" value="入库+快照" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#6c8ebf;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="13" source="seedAviation" target="dbRedis" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="9" value="" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14;" edge="1" parent="1" source="wsEngine" target="subscriber">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="1070" y="409" as="sourcePoint"/>
-                        <mxPoint x="870" y="980" as="targetPoint"/>
-                        <Array as="points">
-                            <mxPoint x="646" y="615"/>
-                        </Array>
-                    </mxGeometry>
+                <mxCell id="wsEngine" value="websocket.ts + server.ts&#xa;GET /stream (WS)&#xa;handleConnection(): subscribe/unsubscribe&#xa;订阅时立即推送 latestSnapshot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" parent="13" vertex="1">
+                    <mxGeometry x="36.466491228070176" y="440" width="232.8947368421053" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="flow6" value="/data/aviation" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="1" source="httpEngine" target="rewrite" edge="1">
+                <mxCell id="flow3" value="WS 广播" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="13" source="dbRedis" target="wsEngine" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow6" value="/api/external/aviation 请求" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="pluginFetch" target="rewrite" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="940" y="115"/>
+                            <mxPoint x="1860" y="415"/>
+                            <mxPoint x="1860" y="115"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
@@ -114,23 +113,28 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="flow12" value="fetch() HTTP 回退" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=1;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="1" source="rewrite" target="pluginFetch" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="flow12" value="rewrite 到 data-engine /data/aviation" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=0;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="1" source="rewrite" target="httpEngine" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1120" y="115"/>
+                            <mxPoint x="1120" y="333"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="16" value="" style="group;fontSize=14;" vertex="1" connectable="0" parent="1">
+                <mxCell id="16" value="" style="group;fontSize=14;" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="1640" y="740" width="750.0000000000001" height="620" as="geometry"/>
                 </mxCell>
-                <mxCell id="21" value="" style="group" vertex="1" connectable="0" parent="16">
+                <mxCell id="21" value="" style="group" parent="16" vertex="1" connectable="0">
                     <mxGeometry x="-493.15" y="30" width="1113.15" height="350" as="geometry"/>
                 </mxCell>
                 <mxCell id="layerE" value="E. 状态与渲染层" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;container=0;collapsible=0;recursiveResize=1;fontSize=14;" parent="21" vertex="1">
-                    <mxGeometry width="1113.15" height="350" as="geometry"/>
+                    <mxGeometry width="1020" height="300" as="geometry"/>
                 </mxCell>
                 <mxCell id="globeCalc" value="GlobeView.tsx&#xa;visibleEntities = enabled layer + entitiesByPlugin&#xa;applyFilters() + getCachedRenderOptions()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;container=0;fontSize=14;" parent="21" vertex="1">
-                    <mxGeometry x="673.1519178082192" y="40" width="380" height="100" as="geometry"/>
+                    <mxGeometry x="603.1519178082192" y="40" width="380" height="100" as="geometry"/>
                 </mxCell>
                 <mxCell id="renderHook" value="hooks/useEntityRendering.ts&#xa;renderEntities()/renderEntitiesChunked()&#xa;createUpdateLoop() + rebuildStacks()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;container=0;fontSize=14;" parent="21" vertex="1">
-                    <mxGeometry x="673.1519178082192" y="210" width="380" height="100" as="geometry"/>
+                    <mxGeometry x="606.5719178082192" y="180" width="380" height="100" as="geometry"/>
                 </mxCell>
                 <mxCell id="flow16" value="渲染调度" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="21" source="globeCalc" target="renderHook" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -142,25 +146,50 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="renderer" value="EntityRenderer.ts&#xa;Cesium Primitive: point/billboard/label/model&#xa;最终在 Globe 上可视化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;container=0;fontSize=14;" parent="21" vertex="1">
-                    <mxGeometry x="53.15191780821931" y="210" width="380" height="100" as="geometry"/>
+                    <mxGeometry x="56.57191780821931" y="180" width="380" height="100" as="geometry"/>
                 </mxCell>
                 <mxCell id="flow17" value="Cesium Primitive" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="21" source="renderHook" target="renderer" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="flow11" value="emit dataUpdated" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontSize=14;" parent="1" source="wsClient" target="store" edge="1">
+                <mxCell id="flow11" value="emit dataUpdated" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontSize=14;" parent="1" source="wsClient" target="subscriber" edge="1">
                     <mxGeometry x="-0.8427" relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="1660" y="740"/>
-                            <mxPoint x="1340" y="740"/>
+                            <mxPoint x="1670" y="680"/>
                         </Array>
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="flow14" value="setEntities" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;" parent="1" source="aviationPlugin" target="store" edge="1">
+                <mxCell id="flow14" value="setEntities / setEntityCount" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="subscriber" target="store" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="2250" y="740"/>
-                            <mxPoint x="1340" y="740"/>
+                            <mxPoint x="1290" y="750"/>
+                            <mxPoint x="1390" y="750"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow20" value="renderEntity()/legend/filter 定义" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=14;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="aviationPlugin" target="globeCalc">
+                    <mxGeometry x="-0.4902" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="2200" y="860"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow18" value="subscribe 请求(action=subscribe)" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#82b366;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=14;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="wsClient" target="wsEngine" edge="1">
+                    <mxGeometry x="0.3852" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="890" y="540"/>
+                            <mxPoint x="890" y="545"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow5" value="/stream 数据推送" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=14;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="wsEngine" target="wsClient" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1520" y="520" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="1520" y="520"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
