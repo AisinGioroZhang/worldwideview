@@ -1,8 +1,13 @@
 import Database from 'better-sqlite3';
+import fs from 'fs';
 import path from 'path';
 
 // Define the path for the SQLite database. Note Docker volume mounts to /app/packages/wwv-data-engine/data
 const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'engine.db');
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
 
 export const db = new Database(dbPath, {
   // Use verbose logging if needed for debugging

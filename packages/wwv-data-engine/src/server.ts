@@ -42,7 +42,12 @@ fastify.get('/health', async (request, reply) => {
 async function start() {
   try {
     // 1. Initialize Prisma Database
-    await prisma.$connect();
+    const hasSupabaseUrl = Boolean(process.env.SUPABASE_DATABASE_URL);
+    if (hasSupabaseUrl) {
+      await prisma.$connect();
+    } else {
+      console.warn('[Server] SUPABASE_DATABASE_URL is empty. Starting in local SQLite-only mode.');
+    }
     
     const { initDB } = await import('./db.js');
     initDB();
@@ -70,7 +75,9 @@ async function start() {
 async function gracefulShutdown(signal: string) {
   console.log(`\n[Server] ${signal} received. Shutting down...`);
   await fastify.close();
-  await prisma.$disconnect();
+  if (process.env.SUPABASE_DATABASE_URL) {
+    await prisma.$disconnect();
+  }
   process.exit(0);
 }
 
